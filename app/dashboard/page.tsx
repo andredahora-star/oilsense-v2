@@ -1,21 +1,64 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export default function Dashboard() {
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.push('/login')
+      } else {
+        setUser(session.user)
+        setLoading(false)
+      }
+    })
+  }, [])
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  if (loading) return (
+    <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',color:'#8b949e',fontFamily:'system-ui'}}>
+      Carregando...
+    </div>
+  )
+
   const stats = [
     { label: 'Transformadores', value: '—', color: '#e6edf3' },
     { label: 'Total Análises', value: '—', color: '#e6edf3' },
     { label: 'Alertas Ativos', value: '—', color: '#e74c3c' },
     { label: 'OS Abertas', value: '—', color: '#f39c12' },
   ]
+
   return (
-    <div style={{minHeight:'100vh',background:'#0d1117',color:'#e6edf3',padding:'32px 24px',fontFamily:'system-ui,sans-serif'}}>
-      <div style={{maxWidth:'1200px',margin:'0 auto'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'32px'}}>
-          <div style={{width:'36px',height:'36px',borderRadius:'8px',background:'linear-gradient(135deg,#22c55e,#16a34a)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:'700',color:'#0d1117'}}>OS</div>
-          <span style={{fontSize:'18px',fontWeight:'600'}}>OilSense</span>
-          <span style={{fontSize:'11px',background:'rgba(34,197,94,0.15)',color:'#22c55e',padding:'3px 10px',borderRadius:'20px',fontWeight:'500'}}>v2 beta</span>
+    <div style={{minHeight:'100vh',background:'#0d1117',color:'#e6edf3',fontFamily:'system-ui,sans-serif'}}>
+      <nav style={{borderBottom:'1px solid #30363d',padding:'0 24px',display:'flex',alignItems:'center',justifyContent:'space-between',height:'56px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#22c55e,#16a34a)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:'700',color:'#0d1117'}}>OS</div>
+          <span style={{fontWeight:'600'}}>OilSense</span>
+          <span style={{fontSize:'11px',background:'rgba(34,197,94,0.15)',color:'#22c55e',padding:'2px 8px',borderRadius:'20px'}}>v2 beta</span>
         </div>
-        <h1 style={{fontSize:'26px',fontWeight:'700',marginBottom:'6px'}}>Dashboard Executivo</h1>
-        <p style={{color:'#8b949e',marginBottom:'32px',fontSize:'14px'}}>Bem-vindo ao OilSense v2 — migrando do Base44</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'32px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
+          <span style={{fontSize:'13px',color:'#8b949e'}}>{user?.email}</span>
+          <button onClick={handleLogout} style={{fontSize:'12px',padding:'6px 12px',background:'transparent',border:'1px solid #30363d',borderRadius:'6px',color:'#8b949e',cursor:'pointer',fontFamily:'inherit'}}>Sair</button>
+        </div>
+      </nav>
+      <div style={{maxWidth:'1200px',margin:'0 auto',padding:'32px 24px'}}>
+        <h1 style={{fontSize:'22px',fontWeight:'700',marginBottom:'6px'}}>Dashboard Executivo</h1>
+        <p style={{color:'#8b949e',fontSize:'14px',marginBottom:'28px'}}>Bem-vindo ao OilSense v2</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'28px'}}>
           {stats.map(s => (
             <div key={s.label} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'20px'}}>
               <div style={{fontSize:'28px',fontWeight:'700',color:s.color,marginBottom:'4px'}}>{s.value}</div>
@@ -25,31 +68,31 @@ export default function Dashboard() {
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
           <div style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'24px'}}>
-            <h2 style={{fontSize:'16px',fontWeight:'600',marginBottom:'16px'}}>Progresso da Migração</h2>
+            <h2 style={{fontSize:'15px',fontWeight:'600',marginBottom:'16px'}}>Progresso da Migração</h2>
             {[
-              { item: 'Infraestrutura Next.js + Vercel', done: true },
-              { item: 'Supabase conectado', done: false },
-              { item: 'Autenticação', done: false },
-              { item: 'Dashboard com dados reais', done: false },
-              { item: 'Importar Laudos', done: false },
-              { item: 'Engine IA + DUVAL', done: false },
-            ].map(m => (
-              <div key={m.item} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                <span style={{color: m.done ? '#22c55e' : '#30363d', fontSize:'16px'}}>{m.done ? '✓' : '○'}</span>
-                <span style={{fontSize:'13px',color: m.done ? '#e6edf3' : '#8b949e'}}>{m.item}</span>
+              ['Infraestrutura Vercel + Next.js', true],
+              ['Domínio v2.oilssense.com', true],
+              ['Supabase Auth', true],
+              ['Dashboard com dados reais', false],
+              ['Importar Laudos integrado', false],
+              ['Engine IA + DUVAL migrado', false],
+            ].map(([item, done]) => (
+              <div key={item as string} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
+                <span style={{color:done?'#22c55e':'#30363d',fontSize:'16px'}}>{done?'✓':'○'}</span>
+                <span style={{fontSize:'13px',color:done?'#e6edf3':'#8b949e'}}>{item as string}</span>
               </div>
             ))}
           </div>
           <div style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'24px'}}>
-            <h2 style={{fontSize:'16px',fontWeight:'600',marginBottom:'16px'}}>Links Rápidos</h2>
+            <h2 style={{fontSize:'15px',fontWeight:'600',marginBottom:'16px'}}>Acesso Rápido</h2>
             {[
-              { label: 'OilSense Atual (Base44)', url: 'https://app.oilssense.com', color: '#4a90d9' },
-              { label: 'Importar Laudos (Netlify)', url: 'https://oilsense-import.netlify.app', color: '#22c55e' },
-              { label: 'Supabase Dashboard', url: 'https://supabase.com/dashboard/project/rcxtgajofdsjwuaupvea', color: '#3ecf8e' },
-              { label: 'Repositório GitHub', url: 'https://github.com/andredahora-star/oilsense-v2', color: '#8b949e' },
-            ].map(l => (
-              <a key={l.label} href={l.url} target="_blank" style={{display:'block',padding:'10px 14px',marginBottom:'8px',background:'#0d1117',borderRadius:'8px',color:l.color,textDecoration:'none',fontSize:'13px',fontWeight:'500'}}>
-                {l.label} →
+              ['OilSense Atual (Base44)', 'https://app.oilssense.com', '#4a90d9'],
+              ['Importar Laudos', 'https://oilsense-import.netlify.app', '#22c55e'],
+              ['Supabase', 'https://supabase.com/dashboard/project/rcxtgajofdsjwuaupvea', '#3ecf8e'],
+              ['GitHub v2', 'https://github.com/andredahora-star/oilsense-v2', '#8b949e'],
+            ].map(([label, url, color]) => (
+              <a key={label} href={url as string} target="_blank" style={{display:'block',padding:'10px 14px',marginBottom:'8px',background:'#0d1117',borderRadius:'8px',color:color as string,textDecoration:'none',fontSize:'13px',fontWeight:'500'}}>
+                {label as string} →
               </a>
             ))}
           </div>
