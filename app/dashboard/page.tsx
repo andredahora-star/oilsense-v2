@@ -11,16 +11,39 @@ const supabase = createClient(
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({transformers:0, analyses:0, alerts:0, orders:0})
+  const [subId, setSubId] = useState<string|null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/login')
-      } else {
-        setUser(session.user)
-        setLoading(false)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { router.push('/login'); return }
+      setUser(session.user)
+
+      // Buscar subscription do usuário
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('id, company_name')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (sub) {
+        setSubId(sub.id)
+        // Buscar stats em paralelo
+        const [t, a, al, o] = await Promise.all([
+          supabase.from('transformers').select('id', {count:'exact'}).eq('subscription_id', sub.id),
+          supabase.from('lab_analyses').select('id', {count:'exact'}).eq('subscription_id', sub.id),
+          supabase.from('alerts').select('id', {count:'exact'}).eq('subscription_id', sub.id).eq('resolved', false),
+          supabase.from('service_orders').select('id', {count:'exact'}).eq('subscription_id', sub.id).eq('status', 'aberta'),
+        ])
+        setStats({
+          transformers: t.count || 0,
+          analyses: a.count || 0,
+          alerts: al.count || 0,
+          orders: o.count || 0,
+        })
       }
+      setLoading(false)
     })
   }, [])
 
@@ -35,11 +58,11 @@ export default function Dashboard() {
     </div>
   )
 
-  const stats = [
-    { label: 'Transformadores', value: '—', color: '#e6edf3' },
-    { label: 'Total Análises', value: '—', color: '#e6edf3' },
-    { label: 'Alertas Ativos', value: '—', color: '#e74c3c' },
-    { label: 'OS Abertas', value: '—', color: '#f39c12' },
+  const cards = [
+    { label: 'Transformadores', value: stats.transformers, color: '#e6edf3', href:'/assets' },
+    { label: 'Total Análises', value: stats.analyses, color: '#e6edf3', href:'/analyses' },
+    { label: 'Alertas Ativos', value: stats.alerts, color: stats.alerts > 0 ? '#e74c3c' : '#22c55e', href:'/alerts' },
+    { label: 'OS Abertas', value: stats.orders, color: stats.orders > 0 ? '#f39c12' : '#22c55e', href:'/orders' },
   ]
 
   return (
@@ -56,16 +79,18 @@ export default function Dashboard() {
         </div>
       </nav>
       <div style={{maxWidth:'1200px',margin:'0 auto',padding:'32px 24px'}}>
-        <h1 style={{fontSize:'22px',fontWeight:'700',marginBottom:'6px'}}>Dashboard Executivo</h1>
-        <p style={{color:'#8b949e',fontSize:'14px',marginBottom:'28px'}}>Bem-vindo ao OilSense v2</p>
+        <h1 style={{fontSize:'22px',fontWeight:'700',marginBottom:'4px'}}>Dashboard Executivo</h1>
+        <p style={{color:'#8b949e',fontSize:'13px',marginBottom:'28px'}}>Bem-vindo ao OilSense v2 — {user?.email}</p>
+
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'28px'}}>
-          {stats.map(s => (
-            <div key={s.label} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'20px'}}>
-              <div style={{fontSize:'28px',fontWeight:'700',color:s.color,marginBottom:'4px'}}>{s.value}</div>
+          {cards.map(s => (
+            <div key={s.label} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'20px',cursor:'pointer'}} onClick={() => router.push(s.href)}>
+              <div style={{fontSize:'32px',fontWeight:'700',color:s.color,marginBottom:'4px'}}>{s.value}</div>
               <div style={{fontSize:'12px',color:'#8b949e',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
             </div>
           ))}
         </div>
+
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
           <div style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'24px'}}>
             <h2 style={{fontSize:'15px',fontWeight:'600',marginBottom:'16px'}}>Progresso da Migração</h2>
@@ -73,7 +98,7 @@ export default function Dashboard() {
               ['Infraestrutura Vercel + Next.js', true],
               ['Domínio v2.oilssense.com', true],
               ['Supabase Auth', true],
-              ['Dashboard com dados reais', false],
+              ['Dashboard com dados reais', true],
               ['Importar Laudos integrado', false],
               ['Engine IA + DUVAL migrado', false],
             ].map(([item, done]) => (
