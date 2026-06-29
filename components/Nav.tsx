@@ -9,20 +9,22 @@ const supabase = createClient(
 
 const links = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/assets', label: 'Ativos' },
-  { href: '/analyses', label: 'Analises' },
-  { href: '/alerts', label: 'Alertas' },
-  { href: '/orders', label: 'OS' },
-  { href: '/import', label: 'Importar' },
+  { href: '/assets',    label: 'Ativos' },
+  { href: '/analyses',  label: 'Analises' },
+  { href: '/alerts',    label: 'Alertas' },
+  { href: '/orders',    label: 'OS' },
+  { href: '/import',    label: 'Importar' },
 ]
 
-export default function Nav({ email }: { email?: string }) {
+export default function Nav({ email, isAdmin }: { email?: string; isAdmin?: boolean }) {
   const router = useRouter()
   const path = usePathname()
+
   async function logout() {
     await supabase.auth.signOut()
     router.push('/login')
   }
+
   return (
     <nav style={{borderBottom:'1px solid #30363d',padding:'0 24px',display:'flex',alignItems:'center',height:'56px',background:'#0d1117',fontFamily:'system-ui,sans-serif'}}>
       <div style={{display:'flex',alignItems:'center',gap:'10px',marginRight:'28px',flexShrink:0}}>
@@ -33,10 +35,16 @@ export default function Nav({ email }: { email?: string }) {
       <div style={{display:'flex',alignItems:'center',gap:'2px',flex:1}}>
         {links.map(l => (
           <button key={l.href} onClick={() => router.push(l.href)}
-            style={{fontSize:'13px',padding:'6px 12px',border:'none',borderRadius:'6px',color: path===l.href ? '#e6edf3' : '#8b949e',cursor:'pointer',fontFamily:'inherit',fontWeight: path===l.href ? '600' : '400',background: path===l.href ? '#161b22' : 'transparent'}}>
+            style={{fontSize:'13px',padding:'6px 12px',border:'none',borderRadius:'6px',color:path===l.href?'#e6edf3':'#8b949e',cursor:'pointer',fontFamily:'inherit',fontWeight:path===l.href?'600':'400',background:path===l.href?'#161b22':'transparent'}}>
             {l.label}
           </button>
         ))}
+        {isAdmin && (
+          <button onClick={() => router.push('/admin')}
+            style={{fontSize:'13px',padding:'6px 12px',border:'none',borderRadius:'6px',color:path==='/admin'?'#e74c3c':'#e74c3c88',cursor:'pointer',fontFamily:'inherit',fontWeight:path==='/admin'?'700':'400',background:path==='/admin'?'rgba(231,76,60,0.1)':'transparent'}}>
+            Admin
+          </button>
+        )}
       </div>
       <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
         <span style={{fontSize:'12px',color:'#8b949e'}}>{email}</span>
