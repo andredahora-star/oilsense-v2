@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/milkrun",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
