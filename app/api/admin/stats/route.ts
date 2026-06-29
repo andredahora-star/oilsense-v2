@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+export const runtime = 'nodejs'
+
+export async function GET() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: subscriptions } = await supabase
+    .from('subscriptions').select('*').order('created_at', { ascending: false })
+
+  if (!subscriptions) return NextResponse.json({ subscriptions: [], stats: {} })
+
+  const stats: Record<string, any> = {}
+  await Promise.all(subscriptions.map(async (s: any) => {
+    const [t, a, al, o] = await Promise.all([
+      supabase.from('transformers').select('id', { count: 'exact', head: true }).eq('subscription_id', s.id),
+      supabase.from('lab_analyses').select('id', { count: 'exact', head: true }).eq('subscription_id', s.id),
+      supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('subscription_id', s.id).eq('resolved', false),
+      supabase.from('service_orders').select('id', { count: 'exact', head: true }).eq('subscription_id', s.id).eq('status', 'aberta'),
+    ])
+    stats[s.id] = { transformers: t.count || 0, analyses: a.count || 0, alerts: al.count || 0, orders: o.count || 0 }
+  }))
+
+  return NextResponse.json({ subscriptions, stats })
+}
