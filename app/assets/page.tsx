@@ -2,81 +2,93 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
-import Nav from '@/components/Nav'
-
-const sc: Record<string,string> = { normal:'#22c55e', atencao:'#f39c12', critico:'#e74c3c' }
+import Sidebar from '@/components/Sidebar'
 
 export default function Assets() {
-  const { user, subId, loading, supabase } = useAuth()
+  const { user, subId, loading, isAdmin, alertCount, supabase } = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const router = useRouter()
 
   useEffect(() => {
     if (!subId) return
-    supabase.from('transformers').select('*').eq('subscription_id', subId).order('health_score',{ascending:true}).then(({data}) => setItems(data||[]))
+    supabase.from('transformers').select('*').eq('subscription_id',subId).order('health_score',{ascending:true}).then(({data})=>setItems(data||[]))
   }, [subId])
+
+  if (loading) return <div className="loading-screen"><div className="spinner"/><span className="loading-text">Carregando...</span></div>
 
   const filtered = items.filter(t =>
     (t.identificacao||'').toLowerCase().includes(search.toLowerCase()) ||
     (t.numero_serie||'').toLowerCase().includes(search.toLowerCase()) ||
     (t.localizacao||'').toLowerCase().includes(search.toLowerCase())
   )
-
-  if (loading) return <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',color:'#8b949e',fontFamily:'system-ui'}}>Carregando...</div>
+  const sc = (s:number) => s>=85?'#22c55e':s>=70?'#f59e0b':'#ef4444'
+  const sb = (s:string) => s==='critico'?'badge-critico':s==='atencao'?'badge-atencao':'badge-normal'
 
   return (
-    <div style={{minHeight:'100vh',background:'#0d1117',color:'#e6edf3',fontFamily:'system-ui,sans-serif'}}>
-      <Nav email={user?.email} />
-      <div style={{maxWidth:'1200px',margin:'0 auto',padding:'32px 24px'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px'}}>
+    <div className="app-layout">
+      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount} />
+      <main className="main-content">
+        <header className="page-header">
           <div>
-            <h1 style={{fontSize:'22px',fontWeight:'700',marginBottom:'4px'}}>Ativos — Transformadores</h1>
-            <p style={{color:'#8b949e',fontSize:'13px'}}>{items.length} transformador{items.length!==1?'es':''} monitorado{items.length!==1?'s':''}</p>
+            <h1 className="page-title">Ativos</h1>
+            <p className="page-subtitle">{items.length} transformador{items.length!==1?'es':''} monitorado{items.length!==1?'s':''}</p>
           </div>
-          <button onClick={() => router.push('/import')} style={{padding:'8px 18px',background:'#22c55e',border:'none',borderRadius:'8px',color:'#0d1117',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'inherit'}}>+ Importar Laudos</button>
-        </div>
-
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-          {[{l:'Total',v:items.length,c:'#e6edf3'},{l:'Critico',v:items.filter(t=>t.status==='critico').length,c:'#e74c3c'},{l:'Atencao',v:items.filter(t=>t.status==='atencao').length,c:'#f39c12'},{l:'Normal',v:items.filter(t=>t.status==='normal').length,c:'#22c55e'}].map(s=>(
-            <div key={s.l} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'10px',padding:'16px 20px'}}>
-              <div style={{fontSize:'26px',fontWeight:'700',color:s.c}}>{s.v}</div>
-              <div style={{fontSize:'12px',color:'#8b949e',textTransform:'uppercase',marginTop:'2px'}}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por identificacao, serie ou localizacao..."
-          style={{width:'100%',padding:'10px 16px',background:'#161b22',border:'1px solid #30363d',borderRadius:'8px',color:'#e6edf3',fontSize:'14px',outline:'none',boxSizing:'border-box',marginBottom:'16px'}} />
-
-        {filtered.length === 0 ? (
-          <div style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'60px',textAlign:'center',color:'#8b949e'}}>
-            {search ? 'Nenhum resultado.' : 'Nenhum transformador ainda. Importe os primeiros laudos para cadastrar automaticamente.'}
-          </div>
-        ) : filtered.map(t => (
-          <div key={t.id} onClick={() => router.push('/analyses?transformer='+t.id)}
-            style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'18px 20px',marginBottom:'10px',display:'grid',gridTemplateColumns:'1fr auto',gap:'16px',alignItems:'center',cursor:'pointer'}}>
-            <div style={{display:'grid',gridTemplateColumns:'200px 1fr 1fr 1fr',gap:'16px',alignItems:'center'}}>
-              <div>
-                <div style={{fontSize:'14px',fontWeight:'600'}}>{t.identificacao||t.numero_serie}</div>
-                <div style={{fontSize:'12px',color:'#8b949e',marginTop:'2px'}}>{t.numero_serie}</div>
+          <button className="btn btn-primary btn-sm" onClick={()=>router.push('/import')}>↑ Importar Laudos</button>
+        </header>
+        <div className="page-body">
+          <div className="stat-grid" style={{marginBottom:'20px'}}>
+            {[{l:'Total',v:items.length,c:'var(--text)'},{l:'Normal',v:items.filter(t=>t.status==='normal').length,c:'#22c55e'},{l:'Atenção',v:items.filter(t=>t.status==='atencao').length,c:'#f59e0b'},{l:'Crítico',v:items.filter(t=>t.status==='critico').length,c:'#ef4444'}].map(s=>(
+              <div key={s.l} className="stat-card" style={{padding:'14px 18px'}}>
+                <div className="stat-value" style={{fontSize:'24px',color:s.c}}>{s.v}</div>
+                <div className="stat-label">{s.l}</div>
               </div>
-              <div><div style={{fontSize:'12px',color:'#8b949e'}}>Fabricante</div><div style={{fontSize:'13px',marginTop:'2px'}}>{t.fabricante||'—'}</div></div>
-              <div><div style={{fontSize:'12px',color:'#8b949e'}}>Potencia</div><div style={{fontSize:'13px',marginTop:'2px'}}>{t.potencia_kva?t.potencia_kva+' kVA':'—'}{t.tensao_kv?' · '+t.tensao_kv:''}</div></div>
-              <div><div style={{fontSize:'12px',color:'#8b949e'}}>Localizacao</div><div style={{fontSize:'13px',marginTop:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.localizacao||'—'}</div></div>
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-              <div style={{textAlign:'right'}}>
-                <div style={{fontSize:'22px',fontWeight:'700',color:(t.health_score||0)>=85?'#22c55e':(t.health_score||0)>=70?'#f39c12':'#e74c3c'}}>{t.health_score??'—'}</div>
-                <div style={{fontSize:'11px',color:'#8b949e'}}>Score</div>
-              </div>
-              <span style={{fontSize:'12px',padding:'4px 12px',borderRadius:'20px',background:(sc[t.status]||'#8b949e')+'22',color:sc[t.status]||'#8b949e',border:'1px solid '+(sc[t.status]||'#8b949e')+'44',whiteSpace:'nowrap'}}>
-                {t.status==='critico'?'Critico':t.status==='atencao'?'Atencao':'Normal'}
-              </span>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+          <div style={{marginBottom:'16px'}}>
+            <input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por identificação, série ou localização..." />
+          </div>
+          {filtered.length===0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">⬡</div>
+              <div className="empty-title">{search?'Nenhum resultado':'Nenhum transformador ainda'}</div>
+              <div className="empty-text">{!search&&'Importe laudos DGA para cadastrar ativos automaticamente'}</div>
+            </div>
+          ) : filtered.map(t=>{
+            const score=t.health_score||0;const color=sc(score)
+            return (
+              <div key={t.id} className="row-item" onClick={()=>router.push('/analyses?transformer='+t.id)}>
+                <div style={{width:'40px',height:'40px',borderRadius:'10px',background:'rgba(59,130,246,.08)',border:'1px solid rgba(59,130,246,.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="8" cy="8" r="2" fill="#3b82f6" opacity=".6"/></svg>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:'14px',fontWeight:'600',marginBottom:'3px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.identificacao||t.numero_serie}</div>
+                  <div style={{fontSize:'12px',color:'var(--text-muted)',display:'flex',gap:'10px',flexWrap:'wrap'}}>
+                    {t.fabricante&&<span>{t.fabricante}</span>}
+                    {t.potencia_kva&&<span>{t.potencia_kva} kVA</span>}
+                    {t.tensao_kv&&<span>{t.tensao_kv}</span>}
+                    {t.localizacao&&<span>📍 {t.localizacao}</span>}
+                  </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
+                  <div style={{width:'80px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}>
+                      <span style={{fontSize:'11px',color:'var(--text-muted)'}}>Health</span>
+                      <span style={{fontSize:'12px',fontWeight:'700',color}}>{score}</span>
+                    </div>
+                    <div className="health-bar-wrap">
+                      <div className="health-bar-fill" style={{width:score+'%',background:color}} />
+                    </div>
+                  </div>
+                  <span className={'badge ' + sb(t.status||'normal')}>
+                    {t.status==='critico'?'Crítico':t.status==='atencao'?'Atenção':'Normal'}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </main>
     </div>
   )
 }
