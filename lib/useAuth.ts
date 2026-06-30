@@ -22,8 +22,15 @@ export function useAuth() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
       setUser(session.user)
-      const { data: sub } = await supabase
-        .from('subscriptions').select('id, company_name').eq('user_id', session.user.id).single()
+      // IMPORTANTE: nao usar .single() aqui — com RLS de admin habilitada,
+      // a query pode retornar mais de uma linha (todas as subscriptions visiveis),
+      // e .single() lanca erro silencioso deixando subId travado em null.
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('id, company_name')
+        .eq('user_id', session.user.id)
+        .limit(1)
+      const sub = subs && subs.length > 0 ? subs[0] : null
       if (sub) {
         setSubId(sub.id)
         setCompany(sub.company_name||'')
