@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import Nav from '@/components/Nav'
+import Sidebar from '@/components/Sidebar'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 const ADMIN_EMAILS = ['andredahora@oilssense.com']
 export default function AdminPage() {
@@ -21,51 +21,53 @@ export default function AdminPage() {
       setLoading(false)
     })
   },[])
-  if(loading)return<div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',color:'#8b949e',fontFamily:'system-ui'}}>Carregando...</div>
+  if(loading)return<div className='loading-screen'><div className='spinner'/><span className='loading-text'>Carregando...</span></div>
   const clientes=subs.filter((s:any)=>s.plan!=='admin')
   const totals=subs.reduce((acc:any,s:any)=>{const st=stats[s.id]||{};return{transformers:acc.transformers+(st.transformers||0),analyses:acc.analyses+(st.analyses||0),alerts:acc.alerts+(st.alerts||0),orders:acc.orders+(st.orders||0)}},{transformers:0,analyses:0,alerts:0,orders:0})
   return(
-    <div style={{minHeight:'100vh',background:'#0d1117',color:'#e6edf3',fontFamily:'system-ui,sans-serif'}}>
-      <Nav email={user?.email} isAdmin={true} />
-      <div style={{maxWidth:'1200px',margin:'0 auto',padding:'32px 24px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px'}}>
-          <h1 style={{fontSize:'22px',fontWeight:'700'}}>Master Admin</h1>
-          <span style={{fontSize:'12px',background:'rgba(231,76,60,0.15)',color:'#e74c3c',padding:'3px 10px',borderRadius:'20px',border:'1px solid rgba(231,76,60,0.3)'}}>Admin</span>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'28px'}}>
-          {[{l:'Clientes',v:clientes.length,c:'#e6edf3'},{l:'Transformadores',v:totals.transformers,c:'#4a90d9'},{l:'Alertas',v:totals.alerts,c:'#e74c3c'},{l:'OS Abertas',v:totals.orders,c:'#f39c12'}].map(s=>(
-            <div key={s.l} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'10px',padding:'16px 20px'}}>
-              <div style={{fontSize:'26px',fontWeight:'700',color:s.c}}>{s.v}</div>
-              <div style={{fontSize:'12px',color:'#8b949e',textTransform:'uppercase',marginTop:'2px'}}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-        <h2 style={{fontSize:'13px',fontWeight:'600',marginBottom:'14px',color:'#8b949e',textTransform:'uppercase'}}>Clientes</h2>
-        {clientes.length===0?(
-          <div style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'40px',textAlign:'center',color:'#8b949e'}}>Nenhum cliente ainda.</div>
-        ):clientes.map((s:any)=>{
-          const st=stats[s.id]||{}
-          return(
-            <div key={s.id} style={{background:'#161b22',border:'1px solid #30363d',borderRadius:'12px',padding:'18px 20px',marginBottom:'10px'}}>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
-                <div>
-                  <div style={{fontSize:'15px',fontWeight:'600',marginBottom:'4px'}}>{s.company_name}</div>
-                  <div style={{fontSize:'12px',color:'#8b949e'}}>Plano: {s.plan} · Desde {new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
+    <div className='app-layout'>
+      <Sidebar email={user?.email} isAdmin={true} alertCount={totals.alerts} />
+      <main className='main-content'>
+        <header className='page-header'>
+          <div>
+            <h1 className='page-title' style={{display:'flex',alignItems:'center',gap:'10px'}}>Master Admin <span className='badge badge-admin'>Admin</span></h1>
+            <p className='page-subtitle'>Visao geral de todos os clientes</p>
+          </div>
+        </header>
+        <div className='page-body'>
+          <div className='stat-grid' style={{marginBottom:'24px'}}>
+            {[{l:'Clientes',v:clientes.length,c:'var(--text)'},{l:'Transformadores',v:totals.transformers,c:'#3b82f6'},{l:'Alertas',v:totals.alerts,c:'#ef4444'},{l:'OS Abertas',v:totals.orders,c:'#f59e0b'}].map(s=>(
+              <div key={s.l} className='stat-card' style={{padding:'14px 18px',cursor:'default'}}>
+                <div className='stat-value' style={{fontSize:'24px',color:s.c}}>{s.v}</div>
+                <div className='stat-label'>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <h2 style={{fontSize:'13px',fontWeight:'600',marginBottom:'14px',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'.06em'}}>Clientes</h2>
+          {clientes.length===0?(
+            <div className='empty-state'><div className='empty-title'>Nenhum cliente ainda</div></div>
+          ):clientes.map((s:any)=>{
+            const st=stats[s.id]||{}
+            return(
+              <div key={s.id} className='row-item'>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:'14px',fontWeight:'600',marginBottom:'4px'}}>{s.company_name}</div>
+                  <div style={{fontSize:'12px',color:'var(--text-muted)'}}>Plano: {s.plan} - Desde {new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
                 </div>
                 <div style={{display:'flex',gap:'20px'}}>
-                  {[{l:'Ativos',v:st.transformers,c:'#4a90d9'},{l:'Analises',v:st.analyses,c:'#e6edf3'},{l:'Alertas',v:st.alerts,c:'#e74c3c'},{l:'OS',v:st.orders,c:'#f39c12'}].map(x=>(
+                  {[{l:'Ativos',v:st.transformers,c:'#3b82f6'},{l:'Analises',v:st.analyses,c:'var(--text)'},{l:'Alertas',v:st.alerts,c:'#ef4444'},{l:'OS',v:st.orders,c:'#f59e0b'}].map(x=>(
                     <div key={x.l} style={{textAlign:'center'}}>
-                      <div style={{fontSize:'20px',fontWeight:'700',color:(x.v||0)>0?x.c:'#30363d'}}>{x.v||0}</div>
-                      <div style={{fontSize:'11px',color:'#8b949e'}}>{x.l}</div>
+                      <div style={{fontSize:'18px',fontWeight:'700',color:(x.v||0)>0?x.c:'var(--text-dim)'}}>{x.v||0}</div>
+                      <div style={{fontSize:'10px',color:'var(--text-muted)'}}>{x.l}</div>
                     </div>
                   ))}
                 </div>
-                <span style={{fontSize:'12px',padding:'3px 10px',borderRadius:'20px',background:s.status==='active'?'#22c55e22':'#8b949e22',color:s.status==='active'?'#22c55e':'#8b949e',border:'1px solid '+(s.status==='active'?'#22c55e44':'#8b949e44')}}>{s.status}</span>
+                <span className={'badge '+(s.status==='active'?'badge-normal':'')}>{s.status}</span>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      </main>
     </div>
   )
 }
