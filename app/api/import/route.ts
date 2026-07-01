@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'x-api-key': (process.env.ANTHROPIC_API_KEY||process.env.ANTHROPI_API_KEY)!,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Diagnóstico rápido pré-save (DUVAL Brain)
+    // 3. DiagnÃ³stico rÃ¡pido prÃ©-save (DUVAL Brain)
     const h2=data.h2||0,ch4=data.ch4||0,c2h2=data.c2h2||0
     const c2h4=data.c2h4||0,c2h6=data.c2h6||0,co=data.co||0
     const co2=data.co2||0,furfural=data.furfural||0
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     const duvalCode = duvalTriangle(ch4,c2h2,c2h4)
     const severity = severityResult.level
 
-    // 4. Salvar análise com severidade já calculada
+    // 4. Salvar anÃ¡lise com severidade jÃ¡ calculada
     const { data: analysis, error } = await supabase
       .from('lab_analyses')
       .insert({
@@ -97,18 +97,18 @@ export async function POST(req: NextRequest) {
 
     if (error) throw new Error(error.message)
 
-    // 5. Criar alerta automático se severity != normal
+    // 5. Criar alerta automÃ¡tico se severity != normal
     let alerta = null
     if (severity !== 'normal' && transformer_id) {
       const duvalInfo = DUVAL_ZONES[duvalCode as keyof typeof DUVAL_ZONES]
       const severityLabel: Record<string,string> = {
-        critical: 'CRÍTICO', high: 'ALTO', medium: 'MÉDIO'
+        critical: 'CRÃTICO', high: 'ALTO', medium: 'MÃDIO'
       }
-      const alertTitle = `[${severityLabel[severity]||severity}] ${data.identificacao||data.numero_serie||'Transformador'} — ${duvalInfo?.desc||duvalCode}`
+      const alertTitle = `[${severityLabel[severity]||severity}] ${data.identificacao||data.numero_serie||'Transformador'} â ${duvalInfo?.desc||duvalCode}`
       const alertMsg = [
-        'Laudo ' + (data.numero_laudo||'—') + ' importado em ' + new Date().toLocaleDateString('pt-BR') + '.',
-        'DUVAL: ' + duvalCode + ' — ' + (duvalInfo?.desc||''),
-        'Normas ativadas: ' + (severityResult.triggered_rules.slice(0,2).join('; ')||'—'),
+        'Laudo ' + (data.numero_laudo||'â') + ' importado em ' + new Date().toLocaleDateString('pt-BR') + '.',
+        'DUVAL: ' + duvalCode + ' â ' + (duvalInfo?.desc||''),
+        'Normas ativadas: ' + (severityResult.triggered_rules.slice(0,2).join('; ')||'â'),
       ].join(' ')
 
       const { data: novoAlerta } = await supabase
