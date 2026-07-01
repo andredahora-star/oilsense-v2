@@ -9,7 +9,7 @@ const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// Buscar subscription_id diretamente — chamado no momento do upload como garantia
+// Buscar subscription_id diretamente â chamado no momento do upload como garantia
 async function getSubId(): Promise<string|null> {
   const { data: { session } } = await sb.auth.getSession()
   if (!session) return null
@@ -78,7 +78,7 @@ export default function ImportPage(){
 
   return(
     <div className='app-layout'>
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount}/>
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={alertCount}/>
       <main className='main-content'>
         <header className='page-header'>
           <div>
