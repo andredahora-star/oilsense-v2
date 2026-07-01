@@ -27,18 +27,18 @@ export default function Assets() {
 
   return (
     <div className="app-layout">
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount} />
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={alertCount} />
       <main className="main-content">
         <header className="page-header">
           <div>
             <h1 className="page-title">Ativos</h1>
             <p className="page-subtitle">{items.length} transformador{items.length!==1?'es':''} monitorado{items.length!==1?'s':''}</p>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={()=>router.push('/import')}>↑ Importar Laudos</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>router.push('/import')}>â Importar Laudos</button>
         </header>
         <div className="page-body">
           <div className="stat-grid" style={{marginBottom:'20px'}}>
-            {[{l:'Total',v:items.length,c:'var(--text)'},{l:'Normal',v:items.filter(t=>t.status==='normal').length,c:'#22c55e'},{l:'Atenção',v:items.filter(t=>t.status==='atencao').length,c:'#f59e0b'},{l:'Crítico',v:items.filter(t=>t.status==='critico').length,c:'#ef4444'}].map(s=>(
+            {[{l:'Total',v:items.length,c:'var(--text)'},{l:'Normal',v:items.filter(t=>t.status==='normal').length,c:'#22c55e'},{l:'AtenÃ§Ã£o',v:items.filter(t=>t.status==='atencao').length,c:'#f59e0b'},{l:'CrÃ­tico',v:items.filter(t=>t.status==='critico').length,c:'#ef4444'}].map(s=>(
               <div key={s.l} className="stat-card" style={{padding:'14px 18px'}}>
                 <div className="stat-value" style={{fontSize:'24px',color:s.c}}>{s.v}</div>
                 <div className="stat-label">{s.l}</div>
@@ -46,11 +46,11 @@ export default function Assets() {
             ))}
           </div>
           <div style={{marginBottom:'16px'}}>
-            <input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por identificação, série ou localização..." />
+            <input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por identificaÃ§Ã£o, sÃ©rie ou localizaÃ§Ã£o..." />
           </div>
           {filtered.length===0 ? (
             <div className="empty-state">
-              <div className="empty-icon">⬡</div>
+              <div className="empty-icon">â¬¡</div>
               <div className="empty-title">{search?'Nenhum resultado':'Nenhum transformador ainda'}</div>
               <div className="empty-text">{!search&&'Importe laudos DGA para cadastrar ativos automaticamente'}</div>
             </div>
@@ -67,7 +67,7 @@ export default function Assets() {
                     {t.fabricante&&<span>{t.fabricante}</span>}
                     {t.potencia_kva&&<span>{t.potencia_kva} kVA</span>}
                     {t.tensao_kv&&<span>{t.tensao_kv}</span>}
-                    {t.localizacao&&<span>📍 {t.localizacao}</span>}
+                    {t.localizacao&&<span>ð {t.localizacao}</span>}
                   </div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
@@ -81,7 +81,7 @@ export default function Assets() {
                     </div>
                   </div>
                   <span className={'badge ' + sb(t.status||'normal')}>
-                    {t.status==='critico'?'Crítico':t.status==='atencao'?'Atenção':'Normal'}
+                    {t.status==='critico'?'CrÃ­tico':t.status==='atencao'?'AtenÃ§Ã£o':'Normal'}
                   </span>
                 </div>
               </div>
