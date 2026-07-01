@@ -28,11 +28,11 @@ export default function Alerts() {
   if (loading) return <div className="loading-screen"><div className="spinner"/><span className="loading-text">Carregando...</span></div>
 
   const sc: Record<string,string> = { critical:'#ef4444', high:'#ef4444', medium:'#f59e0b', low:'#6b7f72' }
-  const label: Record<string,string> = { critical:'CRÍTICO', high:'ALTO', medium:'MÉDIO', low:'BAIXO' }
+  const label: Record<string,string> = { critical:'CRÃTICO', high:'ALTO', medium:'MÃDIO', low:'BAIXO' }
 
   return (
     <div className="app-layout">
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount} />
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={alertCount} />
       <main className="main-content">
         <header className="page-header">
           <div>
@@ -50,7 +50,7 @@ export default function Alerts() {
         <div className="page-body">
           {items.length===0 ? (
             <div className="empty-state">
-              <div className="empty-icon">△</div>
+              <div className="empty-icon">â³</div>
               <div className="empty-title">{filter==='open'?'Nenhum alerta aberto':'Nenhum alerta registrado'}</div>
               <div className="empty-text">{filter==='open'?'Sistema operando normalmente':''}</div>
             </div>
@@ -64,7 +64,7 @@ export default function Alerts() {
                   </div>
                   <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'8px',lineHeight:1.5}}>{a.message}</p>
                   <div style={{fontSize:'12px',color:'var(--text-dim)',display:'flex',gap:'12px'}}>
-                    <span>{a.transformers?.identificacao||a.transformers?.numero_serie||'—'}</span>
+                    <span>{a.transformers?.identificacao||a.transformers?.numero_serie||'â'}</span>
                     <span>{new Date(a.created_at).toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export default function Alerts() {
                     <span className="badge badge-normal">Resolvido</span>
                   ) : (
                     <>
-                      <button className="btn btn-secondary btn-sm" onClick={()=>router.push('/analyses')}>Ver análise</button>
+                      <button className="btn btn-secondary btn-sm" onClick={()=>router.push('/analyses')}>Ver anÃ¡lise</button>
                       <button className="btn btn-sm" style={{background:'rgba(34,197,94,.1)',color:'#4ade80',border:'1px solid rgba(34,197,94,.2)'}} onClick={()=>resolve(a.id)}>Resolver</button>
                     </>
                   )}
