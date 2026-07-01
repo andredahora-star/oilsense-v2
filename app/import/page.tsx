@@ -22,7 +22,7 @@ async function getSubId(): Promise<string|null> {
 }
 
 export default function ImportPage(){
-  const {user,subId,loading,isAdmin,alertCount}=useAuth()
+  const {user,subId,loading,isAdmin,alertCount, company} = useAuth()
   const [items,setItems]=useState<any[]>([])
   const [oilType,setOilType]=useState('Mineral')
   const [done,setDone]=useState(0)
