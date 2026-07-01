@@ -1,6 +1,7 @@
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import Image from 'next/image'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,9 +20,9 @@ const icoLogout = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><
 const NAV = [
   { href:'/dashboard', label:'Dashboard',         ico:icoDash },
   { href:'/assets',    label:'Ativos',            ico:icoAssets },
-  { href:'/analyses',  label:'Análises',          ico:icoAnal },
+  { href:'/analyses',  label:'Analises',          ico:icoAnal },
   { href:'/alerts',    label:'Alertas',           ico:icoAlert },
-  { href:'/orders',    label:'Ordens de Serviço', ico:icoOS },
+  { href:'/orders',    label:'Ordens de Servico', ico:icoOS },
 ]
 const NAV2 = [
   { href:'/import', label:'Importar Laudos', ico:icoImport },
@@ -38,57 +39,62 @@ export default function Sidebar({ email, isAdmin, alertCount }: { email?:string;
   }
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="logo-mark">OS</div>
-        <div className="logo-text">OilSense</div>
-        <div className="logo-badge">v2</div>
+    <aside className='sidebar'>
+      {/* Logo */}
+      <div className='sidebar-logo'>
+        <div className='logo-mark' style={{background:'transparent',padding:0,overflow:'hidden',boxShadow:'none'}}>
+          <Image src='/logo.webp' alt='OilSense' width={36} height={36} style={{objectFit:'contain',borderRadius:'8px'}} />
+        </div>
+        <div className='logo-text'>OilSense</div>
+        <div className='logo-badge'>v2</div>
       </div>
 
-      <nav className="sidebar-nav">
+      {/* Nav */}
+      <nav className='sidebar-nav'>
         {NAV.map(item => {
           const active = path === item.href || path.startsWith(item.href + '/')
           return (
             <button key={item.href} className={'nav-item' + (active?' active':'')} onClick={()=>router.push(item.href)}>
-              <span className="nav-icon" dangerouslySetInnerHTML={{__html:item.ico}} />
+              <span className='nav-icon' dangerouslySetInnerHTML={{__html:item.ico}} />
               {item.label}
               {item.href === '/alerts' && (alertCount||0) > 0 && (
-                <span className="nav-badge">{alertCount}</span>
+                <span className='nav-badge'>{alertCount}</span>
               )}
             </button>
           )
         })}
 
-        <div className="nav-section-label">Ferramentas</div>
+        <div className='nav-section-label'>Ferramentas</div>
         {NAV2.map(item => {
           const active = path === item.href
           return (
             <button key={item.href} className={'nav-item' + (active?' active':'')} onClick={()=>router.push(item.href)}>
-              <span className="nav-icon" dangerouslySetInnerHTML={{__html:item.ico}} />
+              <span className='nav-icon' dangerouslySetInnerHTML={{__html:item.ico}} />
               {item.label}
             </button>
           )
         })}
 
         {isAdmin && <>
-          <div className="nav-section-label">Admin</div>
+          <div className='nav-section-label'>Admin</div>
           <button
             className={'nav-item' + (path==='/admin'?' active':'')}
             onClick={()=>router.push('/admin')}
             style={{color: path==='/admin' ? '#f87171' : 'rgba(248,113,113,.45)'}}
           >
-            <span className="nav-icon" dangerouslySetInnerHTML={{__html:icoAdmin}} />
+            <span className='nav-icon' dangerouslySetInnerHTML={{__html:icoAdmin}} />
             Master Admin
           </button>
         </>}
       </nav>
 
-      <div className="sidebar-footer">
-        <div className="user-block" onClick={logout} title="Sair">
-          <div className="user-avatar">{initials}</div>
-          <div className="user-info">
-            <div className="user-name">{email?.split('@')[0] || 'Usuário'}</div>
-            <div className="user-email">{email}</div>
+      {/* Footer usuario */}
+      <div className='sidebar-footer'>
+        <div className='user-block' onClick={logout} title='Sair'>
+          <div className='user-avatar'>{initials}</div>
+          <div className='user-info'>
+            <div className='user-name'>{email?.split('@')[0] || 'Usuario'}</div>
+            <div className='user-email'>{email}</div>
           </div>
           <span dangerouslySetInnerHTML={{__html:icoLogout}} style={{flexShrink:0,opacity:.4}} />
         </div>
