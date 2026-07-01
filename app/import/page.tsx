@@ -1,25 +1,42 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { useAuth } from '@/lib/useAuth'
 import Sidebar from '@/components/Sidebar'
+
+const sb = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+// Buscar subscription_id diretamente — chamado no momento do upload como garantia
+async function getSubId(): Promise<string|null> {
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) return null
+  const { data } = await sb
+    .from('subscriptions')
+    .select('id')
+    .eq('user_id', session.user.id)
+    .limit(1)
+  return data && data.length > 0 ? data[0].id : null
+}
 
 export default function ImportPage(){
   const {user,subId,loading,isAdmin,alertCount}=useAuth()
   const [items,setItems]=useState<any[]>([])
   const [oilType,setOilType]=useState('Mineral')
   const [done,setDone]=useState(0)
-
-  // Debug: mostrar o subId atual para diagnostico
-  useEffect(()=>{
-    if(subId) console.log('OilSense: subId carregado =', subId)
-    else if(!loading) console.warn('OilSense: subId ainda null apos loading=false')
-  },[subId,loading])
+  const [uploading,setUploading]=useState(false)
 
   async function processFiles(files:FileList){
-    // Guardar imediatamente as threads de upload mas verificar subId AGORA
-    const currentSubId = subId
+    if(uploading) return
+    setUploading(true)
+    // GARANTIA: buscar subId direto do Supabase no momento do upload
+    // (nao depender do estado do hook que pode ter race condition)
+    const currentSubId = subId || await getSubId()
     if(!currentSubId){
-      alert('Aguarde: carregando dados da conta... Tente novamente em alguns segundos.')
+      alert('Erro: nao foi possivel identificar sua conta. Faca login novamente.')
+      setUploading(false)
       return
     }
     const pdfs=Array.from(files).filter(f=>f.name.toLowerCase().endsWith('.pdf'))
@@ -37,7 +54,11 @@ export default function ImportPage(){
         const resp=await fetch('/api/import',{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({pdf_base64:b64,oil_type:oilType,subscription_id:currentSubId})
+          body:JSON.stringify({
+            pdf_base64:b64,
+            oil_type:oilType,
+            subscription_id:currentSubId
+          })
         })
         const d=await resp.json()
         if(!d.success)throw new Error(d.error||'Erro')
@@ -47,13 +68,13 @@ export default function ImportPage(){
         setItems(prev=>prev.map(it=>it.name===item.name?{...it,status:'error',msg:e.message?.slice(0,120)}:it))
       }
     }
+    setUploading(false)
   }
 
   if(loading)return<div className='loading-screen'><div className='spinner'/><span className='loading-text'>Carregando...</span></div>
 
   const sc:Record<string,string>={pending:'var(--text-muted)',processing:'#a78bfa',ok:'#22c55e',error:'#ef4444'}
-  const sl:Record<string,string>={pending:'Aguardando',processing:'Processando...',ok:'Importado',error:'Erro'}
-  const ready = !!subId
+  const sl:Record<string,string>={pending:'Aguardando',processing:'Processando com IA...',ok:'Importado',error:'Erro'}
 
   return(
     <div className='app-layout'>
@@ -62,14 +83,7 @@ export default function ImportPage(){
         <header className='page-header'>
           <div>
             <h1 className='page-title'>Importar Laudos</h1>
-            <p className='page-subtitle'>PDFs extraidos pelo Claude IA e salvos automaticamente</p>
-          </div>
-          {/* indicador de estado da conta */}
-          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-            {ready
-              ? <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'20px',background:'rgba(34,197,94,.1)',color:'#4ade80',border:'1px solid rgba(34,197,94,.2)'}}>Conta pronta</span>
-              : <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'20px',background:'rgba(245,158,11,.1)',color:'#fbbf24',border:'1px solid rgba(245,158,11,.2)'}}>Carregando conta...</span>
-            }
+            <p className='page-subtitle'>PDFs extraidos pelo Claude IA e salvos automaticamente no Supabase</p>
           </div>
         </header>
         <div className='page-body' style={{maxWidth:'720px'}}>
@@ -83,22 +97,15 @@ export default function ImportPage(){
             </select>
           </div>
 
-          {/* Upload zone: desabilitada enquanto subId nao carregou */}
-          <label
-            className={'upload-zone' + (!ready?' disabled':'')}
-            style={{display:'block',opacity:ready?1:0.5,cursor:ready?'pointer':'not-allowed'}}
-          >
-            {ready ? (
+          <label className='upload-zone' style={{display:'block',opacity:uploading?0.6:1,cursor:uploading?'not-allowed':'pointer'}}>
+            {uploading ? (
+              <><div className='spinner' style={{margin:'0 auto 12px'}}/><div style={{fontSize:'14px',color:'var(--text-muted)'}}>Processando com IA...</div></>
+            ) : (
               <>
                 <div style={{fontSize:'40px',marginBottom:'12px',opacity:.5}}>PDF</div>
                 <div style={{fontSize:'15px',fontWeight:'600',marginBottom:'6px'}}>Arraste PDFs ou clique para selecionar</div>
                 <div style={{fontSize:'13px',color:'var(--text-muted)'}}>Multiplos arquivos suportados</div>
-                <input type='file' accept='.pdf' multiple style={{display:'none'}} onChange={e=>e.target.files&&processFiles(e.target.files)}/>
-              </>
-            ) : (
-              <>
-                <div style={{fontSize:'32px',marginBottom:'12px'}}>&#8987;</div>
-                <div style={{fontSize:'14px',color:'var(--text-muted)'}}>Aguardando dados da conta...</div>
+                <input type='file' accept='.pdf' multiple style={{display:'none'}} disabled={uploading} onChange={e=>e.target.files&&processFiles(e.target.files)}/>
               </>
             )}
           </label>
@@ -109,7 +116,7 @@ export default function ImportPage(){
                 <div key={i} className='row-item' style={{cursor:'default'}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:'13px',fontWeight:'500',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.name}</div>
-                    {it.msg&&<div style={{fontSize:'12px',color:'var(--text-muted)',marginTop:'2px'}}>{it.msg}</div>}
+                    {it.msg&&<div style={{fontSize:'12px',color:it.status==='error'?'#f87171':'var(--text-muted)',marginTop:'2px'}}>{it.msg}</div>}
                   </div>
                   <span style={{fontSize:'12px',padding:'3px 10px',borderRadius:'20px',background:sc[it.status]+'18',color:sc[it.status],border:'1px solid '+sc[it.status]+'30',flexShrink:0}}>{sl[it.status]}</span>
                 </div>
@@ -120,7 +127,7 @@ export default function ImportPage(){
           {done>0&&(
             <div className='card' style={{marginTop:'16px',background:'rgba(34,197,94,.06)',borderColor:'rgba(34,197,94,.2)',textAlign:'center',padding:'28px'}}>
               <div style={{fontSize:'16px',fontWeight:'700',color:'#4ade80',marginBottom:'4px'}}>{done} laudo{done>1?'s':''} importado{done>1?'s':''}</div>
-              <div style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'16px'}}>Diagnostico DUVAL calculado automaticamente</div>
+              <div style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'16px'}}>Diagnostico DUVAL calculado e alertas gerados automaticamente</div>
               <a className='btn btn-primary' href='/analyses'>Ver analises</a>
             </div>
           )}
