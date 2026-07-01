@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // 4. Analise do papel isolante (IEC 61198 / ASTM D5837)
     const paper = diagnosePaper(co, co2, furfural * 1000)
 
-    // 5. Avaliacao físico-química se parametros fornecidos (NBRs)
+    // 5. Avaliacao fÃ­sico-quÃ­mica se parametros fornecidos (NBRs)
     let oilQuality = null
     if (oil_params) {
       oilQuality = evalOilQuality({ oil_type: analysis.oil_type || 'Mineral', ...oil_params } as OilQualityInput)
@@ -61,17 +61,17 @@ export async function POST(req: NextRequest) {
     // 8. Construir prompt para o Claude DUVAL com todo o contexto normativo
     const normsContext = [
       'NORMAS APLICADAS A ESTE DIAGNOSTICO:',
-      '• IEC 60599:2022 — Interpretacao de gases dissolvidos (norma principal DGA)',
-      '• IEEE C57.104-2019 — Guia para interpretacao (tabelas de condicoes 1-4)',
-      '• IEC 61198:1993 + ASTM D5837 — Furânicos e degradacao do papel isolante',
-      '• NBR 7070:2006 — Metodo de amostragem e analise cromatográfica (Brasil)',
-      '• NBR 10710:2022 — Teor de agua (Karl Fischer)',
-      '• NBR 14248:2009 — Indice de neutralizacao/acidez',
-      '• NBR 6234:2015 — Tensao interfacial',
-      '• NBR 12133:1991 — Fator de dissipacao dieletrica',
-      '• NBR IEC 60156:2019 — Rigidez dieletrica',
-      '• NBR 14483:2015 — Cor (escala ASTM)',
-      '• NBR 7148:2013 — Densidade relativa',
+      'â¢ IEC 60599:2022 â Interpretacao de gases dissolvidos (norma principal DGA)',
+      'â¢ IEEE C57.104-2019 â Guia para interpretacao (tabelas de condicoes 1-4)',
+      'â¢ IEC 61198:1993 + ASTM D5837 â FurÃ¢nicos e degradacao do papel isolante',
+      'â¢ NBR 7070:2006 â Metodo de amostragem e analise cromatogrÃ¡fica (Brasil)',
+      'â¢ NBR 10710:2022 â Teor de agua (Karl Fischer)',
+      'â¢ NBR 14248:2009 â Indice de neutralizacao/acidez',
+      'â¢ NBR 6234:2015 â Tensao interfacial',
+      'â¢ NBR 12133:1991 â Fator de dissipacao dieletrica',
+      'â¢ NBR IEC 60156:2019 â Rigidez dieletrica',
+      'â¢ NBR 14483:2015 â Cor (escala ASTM)',
+      'â¢ NBR 7148:2013 â Densidade relativa',
     ].join('\n')
 
     const gasesContext = [
@@ -83,17 +83,17 @@ export async function POST(req: NextRequest) {
 
     const diagContext = [
       'RESULTADOS DOS METODOS NORMATIVOS:',
-      '— Triangulo de Duval (IEC 60599): ' + duvalCode + ' — ' + (duvalInfo?.desc || ''),
-      '— Rogers Ratio (IEEE C57.104): ' + rogers.code + ' — ' + rogers.fault,
+      'â Triangulo de Duval (IEC 60599): ' + duvalCode + ' â ' + (duvalInfo?.desc || ''),
+      'â Rogers Ratio (IEEE C57.104): ' + rogers.code + ' â ' + rogers.fault,
       '  R1(CH4/H2)=' + rogers.R1 + ' | R2(C2H2/C2H4)=' + rogers.R2 + ' | R3(C2H4/C2H6)=' + rogers.R3,
-      '— Condicao IEEE C57.104: ' + severityResult.ieee_condition + '/4 — ' + ieeeAction,
-      '— Papel isolante: ' + paper.papelMsg,
-      '— Severidade final: ' + severityResult.level.toUpperCase() + ' (score=' + severityResult.score + '/100)',
-      '— Regras ativadas: ' + severityResult.triggered_rules.join(' | '),
+      'â Condicao IEEE C57.104: ' + severityResult.ieee_condition + '/4 â ' + ieeeAction,
+      'â Papel isolante: ' + paper.papelMsg,
+      'â Severidade final: ' + severityResult.level.toUpperCase() + ' (score=' + severityResult.score + '/100)',
+      'â Regras ativadas: ' + severityResult.triggered_rules.join(' | '),
     ].join('\n')
 
     const prompt = [
-      'Voce e o DUVAL — engine de diagnostico de transformadores de potencia do OilSense.',
+      'Voce e o DUVAL â engine de diagnostico de transformadores de potencia do OilSense.',
       'Forneca um diagnostico tecnico completo e objetivo em PORTUGUES.',
       '',
       normsContext,
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       'INSTRUCOES:',
       '1. Identifique e explique o tipo de falha com base no Triangulo de Duval e Rogers Ratio, citando as normas aplicadas.',
       '2. Interprete os gases mais significativos e sua correlacao com o tipo de falha.',
-      '3. Avalie o estado da isolacao celulósica com base em CO/CO2 e furfural (IEC 61198/ASTM D5837).',
+      '3. Avalie o estado da isolacao celulÃ³sica com base em CO/CO2 e furfural (IEC 61198/ASTM D5837).',
       '4. Emita a recomendacao tecnica de acao: operacao normal, monitoramento reforcado, investigacao ou retirada de servico.',
       '5. Indique o proximo intervalo de coleta: ' + nextSampling,
       '',
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'x-api-key': (process.env.ANTHROPIC_API_KEY||process.env.ANTHROPI_API_KEY)!,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
