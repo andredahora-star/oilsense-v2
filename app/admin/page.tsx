@@ -26,7 +26,7 @@ export default function AdminPage() {
   const totals=subs.reduce((acc:any,s:any)=>{const st=stats[s.id]||{};return{transformers:acc.transformers+(st.transformers||0),analyses:acc.analyses+(st.analyses||0),alerts:acc.alerts+(st.alerts||0),orders:acc.orders+(st.orders||0)}},{transformers:0,analyses:0,alerts:0,orders:0})
   return(
     <div className='app-layout'>
-      <Sidebar email={user?.email} isAdmin={true} alertCount={totals.alerts} />
+      <Sidebar email={user?.email} company={company} isAdmin={true} alertCount={totals.alerts} />
       <main className='main-content'>
         <header className='page-header'>
           <div>
