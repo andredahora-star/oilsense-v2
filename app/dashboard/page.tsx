@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   return (
     <div className='app-layout'>
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={stats.alerts} />
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={stats.alerts} />
       <main className='main-content'>
         <header className='page-header'>
           <div>
