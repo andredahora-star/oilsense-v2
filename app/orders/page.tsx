@@ -66,7 +66,7 @@ export default function Orders() {
 
   return (
     <div className='app-layout'>
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount} />
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={alertCount} />
       <main className='main-content'>
         <header className='page-header'>
           <div>
@@ -169,7 +169,7 @@ export default function Orders() {
               O Milk Run e uma rotina automatica que varre todas as analises com severidade <b>alta</b> ou <b>critica</b> que ainda nao tem uma OS aberta vinculada.
             </p>
             <p style={{fontSize:'13px',color:'var(--text-muted)',lineHeight:1.7,marginBottom:'10px'}}>
-              Ele agrupa esses ativos por <b>localizacao</b> (subestacao, complexo, parque) e cria uma unica OS por local, permitindo que a equipe de campo faca uma rota de coleta otimizada visitando varios transformadores no mesmo deslocamento — em vez de uma viagem por ativo.
+              Ele agrupa esses ativos por <b>localizacao</b> (subestacao, complexo, parque) e cria uma unica OS por local, permitindo que a equipe de campo faca uma rota de coleta otimizada visitando varios transformadores no mesmo deslocamento â em vez de uma viagem por ativo.
             </p>
             <p style={{fontSize:'13px',color:'var(--text-muted)',lineHeight:1.7,marginBottom:'10px'}}>
               A prioridade da OS gerada e <b>alta</b> se algum ativo do grupo estiver com severidade critica, ou <b>media</b> caso contrario. Roda automaticamente todo dia as 6h, ou pode ser disparado manualmente aqui.
