@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/useAuth'
 import Sidebar from '@/components/Sidebar'
 
 export default function Assets() {
-  const { user, subId, loading, isAdmin, alertCount, supabase } = useAuth()
+  const {user, subId, loading, isAdmin, alertCount, supabase, company} = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const router = useRouter()
