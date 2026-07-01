@@ -28,7 +28,7 @@ function Sparkline({values, color}: {values:number[]; color:string}) {
 }
 
 function List() {
-  const {user,subId,loading,isAdmin,alertCount,supabase}=useAuth()
+  const {user,subId,loading,isAdmin,alertCount,supabase, company} = useAuth()
   const [items,setItems]=useState<any[]>([])
   const [diagnosing,setDiag]=useState<string|null>(null)
   const [view,setView]=useState<'timeline'|'trend'>('timeline')
