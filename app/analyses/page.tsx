@@ -64,7 +64,7 @@ function List() {
 
   return (
     <div className='app-layout'>
-      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={alertCount}/>
+      <Sidebar email={user?.email} company={company} isAdmin={isAdmin} alertCount={alertCount}/>
       <main className='main-content'>
         <header className='page-header'>
           <div><h1 className='page-title'>Analises{tid?' - Ativo':''}</h1><p className='page-subtitle'>{items.length} analise{items.length!==1?'s':''}{tid?' deste ativo':''}</p></div>
