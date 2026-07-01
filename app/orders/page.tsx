@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/useAuth'
 import Sidebar from '@/components/Sidebar'
 
 export default function Orders() {
-  const {user,subId,loading,isAdmin,alertCount,supabase}=useAuth()
+  const {user,subId,loading,isAdmin,alertCount,supabase, company} = useAuth()
   const [items,setItems]=useState<any[]>([])
   const [transformers,setTransformers]=useState<any[]>([])
   const [running,setRunning]=useState(false)
