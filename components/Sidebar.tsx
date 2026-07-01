@@ -18,11 +18,11 @@ const icoAdmin  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><
 const icoLogout = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H2.5A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12H5M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 const NAV = [
-  { href:'/dashboard', label:'Dashboard',         ico:icoDash },
-  { href:'/assets',    label:'Ativos',            ico:icoAssets },
-  { href:'/analyses',  label:'Analises',          ico:icoAnal },
-  { href:'/alerts',    label:'Alertas',           ico:icoAlert },
-  { href:'/orders',    label:'Ordens de Servico', ico:icoOS },
+  { href:'/dashboard', label:'Dashboard',          ico:icoDash },
+  { href:'/assets',    label:'Ativos',             ico:icoAssets },
+  { href:'/analyses',  label:'Analises',           ico:icoAnal },
+  { href:'/alerts',    label:'Alertas',            ico:icoAlert },
+  { href:'/orders',    label:'Ordens de Servico',  ico:icoOS },
 ]
 
 const NAV2 = [
@@ -44,39 +44,37 @@ export default function Sidebar({
   }
 
   return (
-    <aside className='sidebar'>
-      {/* Logo — identica ao V1 */}
-      <div className='sidebar-logo'>
-        <div className='logo-img'>
-          <Image src='/logo.webp' alt='OilSense' width={38} height={38} style={{objectFit:'cover'}} />
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-img">
+          <Image src="/logo.webp" alt="OilSense" width={38} height={38} style={{objectFit:'cover'}} />
         </div>
-        <div className='logo-text-wrap'>
-          <span className='logo-text'>OilSense</span>
-          {company && <span className='logo-sub'>{company}</span>}
+        <div className="logo-text-wrap">
+          <span className="logo-text">OilSense</span>
+          {company && <span className="logo-sub">{company}</span>}
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className='sidebar-nav'>
+      <nav className="sidebar-nav">
         {NAV.map(item => {
           const active = path === item.href || path.startsWith(item.href + '/')
           return (
             <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>router.push(item.href)}>
-              <span className='nav-icon' dangerouslySetInnerHTML={{__html: item.ico}} />
+              <span className="nav-icon" dangerouslySetInnerHTML={{__html: item.ico}} />
               {item.label}
               {item.href === '/alerts' && (alertCount||0) > 0 && (
-                <span className='nav-badge'>{alertCount}</span>
+                <span className="nav-badge">{alertCount}</span>
               )}
             </button>
           )
         })}
 
-        <div className='nav-section-label'>Ferramentas</div>
+        <div className="nav-section-label">Ferramentas</div>
         {NAV2.map(item => {
           const active = path === item.href
           return (
             <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>router.push(item.href)}>
-              <span className='nav-icon' dangerouslySetInnerHTML={{__html: item.ico}} />
+              <span className="nav-icon" dangerouslySetInnerHTML={{__html: item.ico}} />
               {item.label}
             </button>
           )
@@ -84,26 +82,25 @@ export default function Sidebar({
 
         {isAdmin && (
           <>
-            <div className='nav-section-label'>Admin</div>
+            <div className="nav-section-label">Admin</div>
             <button
               className={'nav-item' + (path === '/admin' ? ' active' : '')}
               onClick={()=>router.push('/admin')}
               style={{color: path === '/admin' ? '#f87171' : 'rgba(248,113,113,.4)'}}
             >
-              <span className='nav-icon' dangerouslySetInnerHTML={{__html: icoAdmin}} />
+              <span className="nav-icon" dangerouslySetInnerHTML={{__html: icoAdmin}} />
               Master Admin
             </button>
           </>
         )}
       </nav>
 
-      {/* Footer */}
-      <div className='sidebar-footer'>
-        <div className='user-block' onClick={logout} title='Sair'>
-          <div className='user-avatar'>{initials}</div>
-          <div className='user-info'>
-            <div className='user-name'>{email?.split('@')[0] || 'Usuario'}</div>
-            <div className='user-email'>{email}</div>
+      <div className="sidebar-footer">
+        <div className="user-block" onClick={logout} title="Sair">
+          <div className="user-avatar">{initials}</div>
+          <div className="user-info">
+            <div className="user-name">{email?.split('@')[0] || 'Usuario'}</div>
+            <div className="user-email">{email}</div>
           </div>
           <span dangerouslySetInnerHTML={{__html: icoLogout}} style={{flexShrink:0, opacity:.35}} />
         </div>
