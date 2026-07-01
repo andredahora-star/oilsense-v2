@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar'
 import { useRouter } from 'next/navigation'
 
 export default function Alerts() {
-  const { user, subId, loading, isAdmin, alertCount, supabase } = useAuth()
+  const {user, subId, loading, isAdmin, alertCount, supabase, company} = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [filter, setFilter] = useState<'open'|'all'>('open')
   const router = useRouter()
