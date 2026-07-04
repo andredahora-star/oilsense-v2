@@ -95,6 +95,14 @@ function List() {
                       </div>
                     </div>
                   )}
+                  {trendValues.length < 2 && (
+                    <div className="card" style={{ marginBottom: '16px' }}>
+                      <div className="trend-head"><span className="agent-title">Curva de Tendência</span></div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                        A curva de evolução dos gases aparece com <b>2 ou mais análises deste ativo</b> em datas diferentes. Este ativo tem <b>{items.length}</b> análise{items.length !== 1 ? 's' : ''}. Importe um novo laudo com o <b>mesmo número de série</b> para visualizar a tendência.
+                      </div>
+                    </div>
+                  )}
                   {latest && (
                     <div className="two-col" style={{ marginBottom: '16px' }}>
                       <AgentDuval analysis={latest} />
@@ -102,6 +110,12 @@ function List() {
                     </div>
                   )}
                 </>
+              )}
+
+              {!tid && (
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', padding: '10px 12px', background: 'var(--accent-soft)', borderRadius: '8px' }}>
+                  Dica: clique no <b>nome de um ativo</b> abaixo para abrir a curva de tendência, o painel do Agente Duval e o chat daquele transformador.
+                </div>
               )}
 
               {/* Timeline de análises */}
