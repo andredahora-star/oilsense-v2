@@ -29,46 +29,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif'}}>
-      <div style={{width:'100%',maxWidth:'400px',padding:'0 24px'}}>
-        <div style={{textAlign:'center',marginBottom:'40px'}}>
-          <div style={{width:'56px',height:'56px',borderRadius:'14px',background:'linear-gradient(135deg,#22c55e,#16a34a)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',fontWeight:'700',color:'#0d1117',margin:'0 auto 16px'}}>OS</div>
-          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#e6edf3',margin:'0 0 6px'}}>OilSense</h1>
-          <p style={{fontSize:'14px',color:'#8b949e',margin:0}}>Acesse sua conta</p>
+    <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}}>
+      <div style={{width:'100%',maxWidth:'400px'}}>
+        <div style={{textAlign:'center',marginBottom:'28px'}}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="OilSense" style={{width:'64px',height:'64px',borderRadius:'14px',objectFit:'cover',margin:'0 auto 16px',display:'block'}} />
+          <h1 style={{fontSize:'24px',fontWeight:'700',color:'var(--text)',margin:'0 0 6px',letterSpacing:'-.4px'}}>OilSense</h1>
+          <p style={{fontSize:'14px',color:'var(--text-muted)',margin:0}}>Acesse sua conta</p>
         </div>
-        <form onSubmit={handleLogin}>
-          <div style={{marginBottom:'16px'}}>
-            <label style={{display:'block',fontSize:'13px',fontWeight:'500',color:'#e6edf3',marginBottom:'6px'}}>E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              style={{width:'100%',padding:'10px 14px',background:'#161b22',border:'1px solid #30363d',borderRadius:'8px',color:'#e6edf3',fontSize:'14px',outline:'none',boxSizing:'border-box'}}
-              placeholder="seu@email.com"
-            />
+        <form onSubmit={handleLogin} className="card card-lg" style={{boxShadow:'var(--shadow-md)'}}>
+          <div style={{marginBottom:'14px'}}>
+            <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'var(--text)',marginBottom:'6px'}}>E-mail</label>
+            <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" />
           </div>
-          <div style={{marginBottom:'24px'}}>
-            <label style={{display:'block',fontSize:'13px',fontWeight:'500',color:'#e6edf3',marginBottom:'6px'}}>Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              style={{width:'100%',padding:'10px 14px',background:'#161b22',border:'1px solid #30363d',borderRadius:'8px',color:'#e6edf3',fontSize:'14px',outline:'none',boxSizing:'border-box'}}
-              placeholder="••••••••"
-            />
+          <div style={{marginBottom:'20px'}}>
+            <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'var(--text)',marginBottom:'6px'}}>Senha</label>
+            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
           </div>
-          {error && <div style={{background:'rgba(231,76,60,0.1)',border:'1px solid rgba(231,76,60,0.3)',borderRadius:'8px',padding:'10px 14px',marginBottom:'16px',fontSize:'13px',color:'#e74c3c'}}>{error}</div>}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{width:'100%',padding:'12px',background:loading?'#1a4731':'#22c55e',color:'#0d1117',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:loading?'not-allowed':'pointer',fontFamily:'inherit'}}
-          >
+          {error && <div style={{background:'#fdecec',border:'1px solid rgba(220,38,38,.25)',borderRadius:'8px',padding:'10px 14px',marginBottom:'16px',fontSize:'13px',color:'#dc2626'}}>{error}</div>}
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{width:'100%',padding:'12px'}}>
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
-        <p style={{textAlign:'center',marginTop:'24px',fontSize:'13px',color:'#8b949e'}}>
+        <p style={{textAlign:'center',marginTop:'24px',fontSize:'13px',color:'var(--text-muted)'}}>
           OilSense v2 — Manutenção preditiva de transformadores
         </p>
       </div>

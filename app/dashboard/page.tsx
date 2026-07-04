@@ -3,12 +3,16 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import Sidebar from '@/components/Sidebar'
+import TrendChart from '@/components/TrendChart'
+
+const fmtD = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''
 
 export default function Dashboard() {
   const { user, subId, company, loading, isAdmin, alertCount, supabase } = useAuth()
   const [stats, setStats]   = useState({ transformers:0, analyses:0, alerts:0, orders:0 })
   const [recent, setRecent] = useState<any[]>([])
   const [health, setHealth] = useState<any[]>([])
+  const [trend, setTrend] = useState<{ values: number[]; labels: string[]; name: string } | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const router = useRouter()
 
@@ -28,6 +32,18 @@ export default function Dashboard() {
       setDataLoading(false)
     })
   }, [subId])
+
+  // Tendência de H2 do ativo mais crítico
+  useEffect(() => {
+    const top = health[0]
+    if (!top) { setTrend(null); return }
+    supabase.from('lab_analyses').select('h2,data_coleta').eq('transformer_id', top.id).order('data_coleta', { ascending: true })
+      .then(({ data }: any) => {
+        const pts = (data || []).filter((a: any) => a.h2 != null)
+        if (pts.length < 2) { setTrend(null); return }
+        setTrend({ values: pts.map((p: any) => Number(p.h2)), labels: pts.map((p: any) => fmtD(p.data_coleta)), name: top.identificacao || top.numero_serie || 'Ativo' })
+      })
+  }, [health])
 
   if (loading || (subId && dataLoading)) return (
     <div className="loading-screen"><div className="spinner" /><span className="loading-text">Carregando OilSense...</span></div>
@@ -73,7 +89,17 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+          {trend && (
+            <div className="card" style={{marginBottom:'16px'}}>
+              <div className="trend-head">
+                <span style={{fontSize:'12px',fontWeight:'700',color:'var(--text)',textTransform:'uppercase',letterSpacing:'.08em'}}>Tendência de H2 — {trend.name}</span>
+                <button className="btn btn-secondary btn-sm" onClick={()=>{const t=health[0];if(t)router.push('/analyses?transformer='+t.id)}}>Ver análises</button>
+              </div>
+              <TrendChart values={trend.values} labels={trend.labels} color="#2563eb" />
+            </div>
+          )}
+
+          <div className="two-col">
             <div className="card card-lg">
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
                 <span style={{fontSize:'12px',fontWeight:'700',color:'var(--text)',textTransform:'uppercase',letterSpacing:'.08em'}}>Saude dos Ativos</span>

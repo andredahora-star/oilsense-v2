@@ -1,13 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+export async function GET(req: NextRequest) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabase = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+  // --- Verificação de acesso: somente admins ---
+  const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+  if (!token) return NextResponse.json({ error: 'não autenticado' }, { status: 401 })
+  const anon = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const { data: { user }, error: uErr } = await anon.auth.getUser(token)
+  if (uErr || !user) return NextResponse.json({ error: 'sessão inválida' }, { status: 401 })
+  const { data: sub } = await supabase.from('subscriptions').select('is_admin').eq('user_id', user.id).limit(1)
+  if (!sub || !sub[0]?.is_admin) return NextResponse.json({ error: 'acesso restrito a administradores' }, { status: 403 })
 
   const { data: subscriptions } = await supabase
     .from('subscriptions').select('*').order('created_at', { ascending: false })

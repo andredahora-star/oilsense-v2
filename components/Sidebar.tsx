@@ -1,7 +1,10 @@
 'use client'
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
+
+const icoBurger = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,17 +40,26 @@ export default function Sidebar({
   const router = useRouter()
   const path   = usePathname()
   const initials = email ? email.slice(0,2).toUpperCase() : 'OS'
+  const [open, setOpen] = useState(false)
 
   async function logout() {
     await supabase.auth.signOut()
     router.push('/login')
   }
+  function go(href: string) { setOpen(false); router.push(href) }
 
   return (
-    <aside className="sidebar">
+    <>
+    <div className="mobile-topbar">
+      <button className="mt-burger" onClick={()=>setOpen(true)} aria-label="Abrir menu" dangerouslySetInnerHTML={{__html: icoBurger}} />
+      <Image src="/logo.png" alt="OilSense" width={28} height={28} style={{borderRadius:'7px',objectFit:'cover'}} />
+      <span className="mt-title">OilSense</span>
+    </div>
+    <div className={'sidebar-overlay' + (open ? ' open' : '')} onClick={()=>setOpen(false)} />
+    <aside className={'sidebar' + (open ? ' open' : '')}>
       <div className="sidebar-logo">
         <div className="logo-img">
-          <Image src="/logo.webp" alt="OilSense" width={38} height={38} style={{objectFit:'cover'}} />
+          <Image src="/logo.png" alt="OilSense" width={38} height={38} style={{objectFit:'cover'}} />
         </div>
         <div className="logo-text-wrap">
           <span className="logo-text">OilSense</span>
@@ -59,7 +71,7 @@ export default function Sidebar({
         {NAV.map(item => {
           const active = path === item.href || path.startsWith(item.href + '/')
           return (
-            <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>router.push(item.href)}>
+            <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>go(item.href)}>
               <span className="nav-icon" dangerouslySetInnerHTML={{__html: item.ico}} />
               {item.label}
               {item.href === '/alerts' && (alertCount||0) > 0 && (
@@ -73,7 +85,7 @@ export default function Sidebar({
         {NAV2.map(item => {
           const active = path === item.href
           return (
-            <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>router.push(item.href)}>
+            <button key={item.href} className={'nav-item' + (active ? ' active' : '')} onClick={()=>go(item.href)}>
               <span className="nav-icon" dangerouslySetInnerHTML={{__html: item.ico}} />
               {item.label}
             </button>
@@ -85,7 +97,7 @@ export default function Sidebar({
             <div className="nav-section-label">Admin</div>
             <button
               className={'nav-item' + (path === '/admin' ? ' active' : '')}
-              onClick={()=>router.push('/admin')}
+              onClick={()=>go('/admin')}
               style={{color: path === '/admin' ? '#f87171' : 'rgba(248,113,113,.4)'}}
             >
               <span className="nav-icon" dangerouslySetInnerHTML={{__html: icoAdmin}} />
@@ -106,5 +118,6 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+    </>
   )
 }

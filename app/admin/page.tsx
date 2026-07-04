@@ -12,18 +12,53 @@ export default function AdminPage() {
   const [subs, setSubs] = useState<any[]>([])
   const [stats, setStats] = useState<Record<string,any>>({})
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ company_name: '', email: '', password: '' })
+  const [creating, setCreating] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const router = useRouter()
+
+  async function loadStats() {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/admin/stats', {
+      headers: session?.access_token ? { Authorization: 'Bearer ' + session.access_token } : {},
+    })
+    if (res.ok) { const d = await res.json(); setSubs(d.subscriptions||[]); setStats(d.stats||{}) }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
       if (!ADMIN_EMAILS.includes(session.user.email||'')) { router.push('/dashboard'); return }
       setUser(session.user)
-      const res = await fetch('/api/admin/stats')
-      if (res.ok) { const d = await res.json(); setSubs(d.subscriptions||[]); setStats(d.stats||{}) }
+      await loadStats()
       setLoading(false)
     })
   }, [])
+
+  function genPassword() {
+    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$'
+    let p = ''; for (let i = 0; i < 12; i++) p += c[Math.floor(Math.random() * c.length)]
+    setForm(f => ({ ...f, password: p }))
+  }
+
+  async function createClient_() {
+    setCreating(true); setMsg(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/create-client', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session?.access_token, ...form }),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.success) throw new Error(d.error || 'Erro')
+      setMsg({ ok: true, text: `Cliente "${form.company_name}" criado. Login: ${form.email} / senha: ${form.password}` })
+      setForm({ company_name: '', email: '', password: '' })
+      await loadStats()
+    } catch (e: any) {
+      setMsg({ ok: false, text: e.message })
+    } finally { setCreating(false) }
+  }
 
   if (loading) return <div className="loading-screen"><div className="spinner"/><span className="loading-text">Carregando...</span></div>
 
@@ -49,8 +84,34 @@ export default function AdminPage() {
             </h1>
             <p className="page-subtitle">Visao geral de todos os clientes</p>
           </div>
+          <button className="btn btn-primary btn-sm" onClick={()=>{setShowForm(v=>!v);setMsg(null)}}>
+            {showForm ? 'Cancelar' : '+ Novo Cliente'}
+          </button>
         </header>
         <div className="page-body">
+          {showForm && (
+            <div className="card" style={{marginBottom:'20px',maxWidth:'560px'}}>
+              <div className="agent-head"><span className="agent-title">Criar novo cliente</span></div>
+              <p style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'14px'}}>Cria um login e uma conta isolada (tenant). Os dados desse cliente ficam separados dos demais.</p>
+              <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                <input className="input" placeholder="Nome da empresa" value={form.company_name} onChange={e=>setForm(f=>({...f,company_name:e.target.value}))} />
+                <input className="input" type="email" placeholder="E-mail de login" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} />
+                <div style={{display:'flex',gap:'8px'}}>
+                  <input className="input" placeholder="Senha (mín. 8 caracteres)" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} />
+                  <button className="btn btn-secondary btn-sm" type="button" onClick={genPassword}>Gerar</button>
+                </div>
+                <button className="btn btn-primary" disabled={creating||!form.company_name||!form.email||form.password.length<8} onClick={createClient_}>
+                  {creating ? 'Criando...' : 'Criar cliente'}
+                </button>
+                {msg && (
+                  <div style={{fontSize:'12px',padding:'10px 12px',borderRadius:'8px',background:msg.ok?'#e6f7ef':'#fdecec',color:msg.ok?'#059669':'#dc2626',lineHeight:1.5}}>
+                    {msg.ok ? '✓ ' : '✗ '}{msg.text}
+                    {msg.ok && <div style={{marginTop:'4px',color:'var(--text-muted)'}}>Anote a senha — ela não será exibida novamente.</div>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <div className="stat-grid" style={{marginBottom:'24px'}}>
             {[
               {l:'Clientes',        v:clientes.length,      c:'var(--text)'},

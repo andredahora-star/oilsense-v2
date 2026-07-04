@@ -5,6 +5,7 @@ import {
   getSamplingInterval, evalOilQuality, DUVAL_ZONES, IEEE_ACTIONS,
   type OilQualityInput
 } from '@/lib/duvalBrain'
+import { DUVAL_KNOWLEDGE } from '@/lib/duvalKnowledge'
 
 export const runtime = 'nodejs'
 
@@ -95,6 +96,9 @@ export async function POST(req: NextRequest) {
     const prompt = [
       'Voce e o DUVAL â engine de diagnostico de transformadores de potencia do OilSense.',
       'Forneca um diagnostico tecnico completo e objetivo em PORTUGUES.',
+      '',
+      'BASE DE CONHECIMENTO NORMATIVO (referencia — cite as normas aplicaveis):',
+      DUVAL_KNOWLEDGE,
       '',
       normsContext,
       '',
