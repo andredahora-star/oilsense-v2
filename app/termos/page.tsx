@@ -22,11 +22,11 @@ export default function TermosPage() {
         </div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text)', margin: '20px 0 4px' }}>Termos de Uso</h1>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '32px' }}>
-          Última atualização: [DATA].
+          Última atualização: 14/07/2026. Revisão jurídica realizada em 14/07/2026.
         </p>
 
         <div style={{ background: 'rgba(251, 191, 36, .08)', border: '1px solid rgba(251, 191, 36, .25)', borderRadius: '8px', padding: '14px 16px', marginBottom: '32px', fontSize: '13px', color: '#d97706' }}>
-          Rascunho gerado para uso interno da OilSense. Revisar com um advogado antes de publicar como versão final, e preencher os campos entre colchetes com os dados reais da empresa e do plano comercial vigente.
+          Revisão jurídica realizada em 14/07/2026. Ainda faltam preencher: razão social e endereço da empresa (item 1 da Política de Privacidade), foro/comarca (item 12 abaixo), e a cláusula 5 (planos e cobrança) quando o modelo de cobrança for implementado.
         </div>
 
         <S n="1" title="Aceitação dos termos">

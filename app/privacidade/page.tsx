@@ -22,15 +22,15 @@ export default function PrivacidadePage() {
         </div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text)', margin: '20px 0 4px' }}>Política de Privacidade</h1>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '32px' }}>
-          Última atualização: [DATA]. Documento em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).
+          Última atualização: 14/07/2026. Documento em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD). Revisão jurídica realizada em 14/07/2026.
         </p>
 
         <div style={{ background: 'rgba(251, 191, 36, .08)', border: '1px solid rgba(251, 191, 36, .25)', borderRadius: '8px', padding: '14px 16px', marginBottom: '32px', fontSize: '13px', color: '#d97706' }}>
-          Rascunho gerado para uso interno da OilSense. Revisar com um advogado antes de publicar como versão final, e preencher os campos entre colchetes com os dados reais da empresa.
+          Revisão jurídica realizada em 14/07/2026. Ainda faltam preencher: razão social e endereço completo da empresa (campos entre colchetes abaixo).
         </div>
 
         <S n="1" title="Quem somos (controlador dos dados)">
-          A OilSense ([RAZÃO SOCIAL], CNPJ [CNPJ], sediada em [ENDEREÇO]) é a controladora dos dados pessoais tratados através da plataforma OilSense (app.oilssense.com e v2.oilssense.com), nos termos da LGPD.
+          A OilSense ([RAZÃO SOCIAL], CNPJ 67.883.729/0001-24, sediada em [ENDEREÇO]) é a controladora dos dados pessoais tratados através da plataforma OilSense (app.oilssense.com e v2.oilssense.com), nos termos da LGPD.
           Para qualquer assunto relacionado a esta política, entre em contato pelo e-mail <strong>comercial@oilssense.com</strong>.
         </S>
 
