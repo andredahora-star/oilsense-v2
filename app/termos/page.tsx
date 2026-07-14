@@ -26,7 +26,7 @@ export default function TermosPage() {
         </p>
 
         <div style={{ background: 'rgba(251, 191, 36, .08)', border: '1px solid rgba(251, 191, 36, .25)', borderRadius: '8px', padding: '14px 16px', marginBottom: '32px', fontSize: '13px', color: '#d97706' }}>
-          Revisão jurídica realizada em 14/07/2026. Ainda faltam preencher: razão social e endereço da empresa (item 1 da Política de Privacidade), foro/comarca (item 12 abaixo), e a cláusula 5 (planos e cobrança) quando o modelo de cobrança for implementado.
+          Revisão jurídica realizada em 14/07/2026. Único item ainda pendente: a cláusula 5 (planos e cobrança), a ser detalhada quando o modelo de cobrança for implementado.
         </div>
 
         <S n="1" title="Aceitação dos termos">
@@ -66,7 +66,7 @@ export default function TermosPage() {
         </S>
 
         <S n="8" title="Limitação de responsabilidade">
-          Na máxima extensão permitida pela lei, a OilSense não se responsabiliza por danos indiretos, lucros cessantes, ou falhas de equipamento decorrentes de decisões tomadas com base nos diagnósticos da Plataforma, ressalvados os casos de dolo ou culpa grave comprovada. A responsabilidade total da OilSense, quando aplicável, está limitada ao valor pago pelo cliente nos últimos 12 (doze) meses. [Cláusula a validar com advogado, especialmente diante da criticidade do setor elétrico atendido.]
+          Na máxima extensão permitida pela lei, a OilSense não se responsabiliza por danos indiretos, lucros cessantes, ou falhas de equipamento decorrentes de decisões tomadas com base nos diagnósticos da Plataforma, ressalvados os casos de dolo ou culpa grave comprovada. A responsabilidade total da OilSense, quando aplicável, está limitada ao valor pago pelo cliente nos últimos 12 (doze) meses.
         </S>
 
         <S n="9" title="Disponibilidade do serviço">
@@ -82,7 +82,7 @@ export default function TermosPage() {
         </S>
 
         <S n="12" title="Lei aplicável e foro">
-          Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro de [CIDADE/COMARCA] para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.
+          Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da Comarca de Natal/RN (1ª Comarca — TJRN) para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.
         </S>
 
         <S n="13" title="Contato">

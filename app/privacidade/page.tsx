@@ -25,12 +25,12 @@ export default function PrivacidadePage() {
           Última atualização: 14/07/2026. Documento em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD). Revisão jurídica realizada em 14/07/2026.
         </p>
 
-        <div style={{ background: 'rgba(251, 191, 36, .08)', border: '1px solid rgba(251, 191, 36, .25)', borderRadius: '8px', padding: '14px 16px', marginBottom: '32px', fontSize: '13px', color: '#d97706' }}>
-          Revisão jurídica realizada em 14/07/2026. Ainda faltam preencher: razão social e endereço completo da empresa (campos entre colchetes abaixo).
+        <div style={{ background: 'rgba(34, 197, 94, .08)', border: '1px solid rgba(34, 197, 94, .25)', borderRadius: '8px', padding: '14px 16px', marginBottom: '32px', fontSize: '13px', color: '#059669' }}>
+          Revisão jurídica realizada em 14/07/2026. Documento completo — todos os dados da empresa preenchidos.
         </div>
 
         <S n="1" title="Quem somos (controlador dos dados)">
-          A OilSense ([RAZÃO SOCIAL], CNPJ 67.883.729/0001-24, sediada em [ENDEREÇO]) é a controladora dos dados pessoais tratados através da plataforma OilSense (app.oilssense.com e v2.oilssense.com), nos termos da LGPD.
+          A OilSense (OILSENSE SOLUÇÕES EM ENGENHARIA E TECNOLOGIA, CNPJ 67.883.729/0001-24, sediada na Avenida Engenheiro Roberto Freire, 1992, Capim Macio, Natal/RN, CEP 59082-095) é a controladora dos dados pessoais tratados através da plataforma OilSense (app.oilssense.com e v2.oilssense.com), nos termos da LGPD.
           Para qualquer assunto relacionado a esta política, entre em contato pelo e-mail <strong>comercial@oilssense.com</strong>.
         </S>
 
@@ -95,7 +95,7 @@ export default function PrivacidadePage() {
         </S>
 
         <S n="10" title="Contato">
-          Dúvidas, solicitações ou reclamações sobre o tratamento de dados pessoais podem ser enviadas para <strong>comercial@oilssense.com</strong>. [Se houver Encarregado de Proteção de Dados (DPO) formalmente designado, incluir nome/contato aqui.]
+          Dúvidas, solicitações ou reclamações sobre o tratamento de dados pessoais podem ser enviadas para <strong>comercial@oilssense.com</strong>.
         </S>
 
         <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
