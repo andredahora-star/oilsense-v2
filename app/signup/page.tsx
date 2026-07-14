@@ -45,7 +45,7 @@ export default function SignupPage(){
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)',padding:'24px'}}>
       <div style={{background:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'12px',padding:'40px',maxWidth:'420px',width:'100%'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'32px',justifyContent:'center'}}>
-          <Image src="/logo.webp" alt="OilSense" width={40} height={40} style={{borderRadius:'10px'}}/>
+          <Image src="/logo.png" alt="OilSense" width={40} height={40} style={{borderRadius:'10px'}}/>
           <span style={{fontSize:'20px',fontWeight:'700',color:'var(--text)'}}>OilSense</span>
         </div>
         <h1 style={{fontSize:'22px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}}>Criar conta</h1>
