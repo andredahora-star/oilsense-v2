@@ -54,6 +54,11 @@ export default function LoginPage(){
             <button className="btn btn-primary" onClick={go} disabled={loading} style={{width:'100%',marginTop:'4px',padding:'11px'}}>{loading?'Entrando...':'Entrar'}</button>
           </div>
           <p style={{fontSize:'13px',color:'var(--text-muted)',textAlign:'center',marginTop:'20px'}}>Nao tem conta?{' '}<button onClick={()=>router.push('/signup')} style={{background:'none',border:'none',color:'var(--green)',cursor:'pointer',fontSize:'13px',fontWeight:'600'}}>Criar conta gratis</button></p>
+          <div style={{display:'flex',gap:'10px',justifyContent:'center',marginTop:'16px',fontSize:'11px'}}>
+            <a href="/termos" target="_blank" rel="noopener" style={{color:'var(--text-dim)',textDecoration:'none'}}>Termos</a>
+            <span style={{color:'var(--text-dim)'}}>·</span>
+            <a href="/privacidade" target="_blank" rel="noopener" style={{color:'var(--text-dim)',textDecoration:'none'}}>Privacidade</a>
+          </div>
         </>):(<>
           <h1 style={{fontSize:'22px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}}>Recuperar senha</h1>
           <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'24px'}}>Enviamos um link para redefinir sua senha</p>

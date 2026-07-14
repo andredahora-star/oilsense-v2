@@ -116,6 +116,11 @@ export default function Sidebar({
           </div>
           <span dangerouslySetInnerHTML={{__html: icoLogout}} style={{flexShrink:0, opacity:.35}} />
         </div>
+        <div style={{display:'flex', gap:'10px', justifyContent:'center', marginTop:'10px', fontSize:'11px'}}>
+          <a href="/termos" target="_blank" rel="noopener" style={{color:'var(--text-dim)', textDecoration:'none'}}>Termos</a>
+          <span style={{color:'var(--text-dim)'}}>·</span>
+          <a href="/privacidade" target="_blank" rel="noopener" style={{color:'var(--text-dim)', textDecoration:'none'}}>Privacidade</a>
+        </div>
       </div>
     </aside>
     </>
