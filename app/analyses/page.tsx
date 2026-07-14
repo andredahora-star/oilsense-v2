@@ -11,6 +11,15 @@ import { calcSeverity } from '@/lib/duvalBrain'
 const GASES = ['H2', 'CH4', 'C2H2', 'C2H4', 'C2H6', 'CO', 'CO2', 'Furfural']
 const GAS_KEYS = ['h2', 'ch4', 'c2h2', 'c2h4', 'c2h6', 'co', 'co2', 'furfural']
 const gasColors: Record<string, string> = { h2: '#2563eb', ch4: '#7c3aed', c2h2: '#dc2626', c2h4: '#d97706', c2h6: '#059669', co: '#ca8a04', co2: '#0d9488', furfural: '#db2777' }
+const FQ_FIELDS: { key: string; label: string; unit: string; norm: string }[] = [
+  { key: 'rigidez_kv', label: 'Rigidez Dielétrica', unit: 'kV', norm: 'NBR IEC 60156' },
+  { key: 'agua_ppm', label: 'Teor de Água', unit: 'ppm', norm: 'NBR 10710' },
+  { key: 'acidez_mg_koh', label: 'Acidez', unit: 'mgKOH/g', norm: 'NBR 14248' },
+  { key: 'tensao_interfacial_mn_m', label: 'Tensão Interfacial', unit: 'mN/m', norm: 'NBR 6234' },
+  { key: 'fator_potencia_pct', label: 'Fator de Potência', unit: '%', norm: 'NBR 12133' },
+  { key: 'cor_astm', label: 'Cor', unit: 'ASTM', norm: 'NBR 14483' },
+  { key: 'densidade', label: 'Densidade', unit: 'g/cm³', norm: 'NBR 7148' },
+]
 
 function fmtDate(d?: string) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '' }
 
@@ -142,6 +151,7 @@ function List() {
                       </div>
                       {a.severity && <span className={'badge badge-' + a.severity} style={{ flexShrink: 0 }}>{a.severity}</span>}
                     </div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '8px' }}>Cromatografia (DGA)</div>
                     <div className="gas-grid">
                       {GASES.map((gname, i) => {
                         const v = vals[i]; const pv = prev ? prev[GAS_KEYS[i]] : null
@@ -157,6 +167,30 @@ function List() {
                         )
                       })}
                     </div>
+                    {FQ_FIELDS.some(f => a[f.key] != null) && (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', marginBottom: '8px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Físico-Química</div>
+                          {a.oil_quality_status && <span className={'badge badge-' + (a.oil_quality_status === 'bom' ? 'normal' : a.oil_quality_status === 'atencao' ? 'medium' : 'critical')} style={{ fontSize: '10px' }}>{a.oil_quality_status}</span>}
+                        </div>
+                        <div className="gas-grid">
+                          {FQ_FIELDS.map(f => {
+                            const v = a[f.key]
+                            const isIssue = a.oil_quality_issues && v != null && a.oil_quality_issues.includes(f.norm)
+                            return (
+                              <div key={f.key} className="gas-cell" style={isIssue ? { borderColor: 'rgba(220,38,38,.35)' } : {}}>
+                                <div className="gas-name">{f.label}</div>
+                                <div className="gas-value" style={{ color: v != null ? (isIssue ? '#dc2626' : 'var(--text)') : 'var(--text-dim)' }}>{v != null ? v : '-'}</div>
+                                {v != null && <div className="gas-unit">{f.unit}</div>}
+                              </div>
+                            )
+                          })}
+                        </div>
+                        {a.oil_quality_issues && (
+                          <div style={{ fontSize: '11px', color: '#d97706', marginTop: '8px', lineHeight: 1.5 }}>{a.oil_quality_issues.split(' | ').join(' • ')}</div>
+                        )}
+                      </>
+                    )}
                     {!tid && a.diagnostic && (
                       <div className="diagnostic-box">
                         <div className="diagnostic-label">Parecer DUVAL</div>

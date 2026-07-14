@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { calcSeverity, duvalTriangle, DUVAL_ZONES } from '@/lib/duvalBrain'
+import { calcSeverity, duvalTriangle, DUVAL_ZONES, evalOilQuality, type OilQualityInput } from '@/lib/duvalBrain'
 
 export const runtime = 'nodejs'
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
           role: 'user',
           content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdf_base64 } },
-            { type: 'text', text: 'Extraia dados do laudo DGA e retorne APENAS JSON sem markdown. Campos: h2 ch4 c2h2 c2h4 c2h6 co co2 furfural (numeros ppm) data_coleta (YYYY-MM-DD) laboratorio numero_laudo numero_serie identificacao fabricante (strings) potencia_kva (numero) tensao_kv (string) localizacao (string). Use null para campos ausentes.' }
+            { type: 'text', text: 'Extraia dados do laudo DGA e fisico-quimica e retorne APENAS JSON sem markdown. Campos de cromatografia (gases dissolvidos, numeros ppm): h2 ch4 c2h2 c2h4 c2h6 co co2 furfural. Campos fisico-quimicos, se presentes no laudo (numeros, use null se ausente): rigidez_kv (rigidez dieletrica em kV, NBR IEC 60156), agua_ppm (teor de agua em ppm, NBR 10710), acidez_mg_koh (indice de neutralizacao em mgKOH/g, NBR 14248), tensao_interfacial_mn_m (tensao interfacial em mN/m, NBR 6234), fator_potencia_pct (fator de dissipacao dieletrica em %, NBR 12133), cor_astm (cor na escala ASTM, NBR 14483), densidade (densidade relativa a 20C, NBR 7148). Campos gerais: data_coleta (YYYY-MM-DD) laboratorio numero_laudo numero_serie identificacao fabricante (strings) potencia_kva (numero) tensao_kv (string) localizacao (string). Use null para campos ausentes.' }
           ]
         }]
       })
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. DiagnÃ³stico rÃ¡pido prÃ©-save (DUVAL Brain)
+    // 3. Diagnostico rapido pre-save (DUVAL Brain)
     const h2=data.h2||0,ch4=data.ch4||0,c2h2=data.c2h2||0
     const c2h4=data.c2h4||0,c2h6=data.c2h6||0,co=data.co||0
     const co2=data.co2||0,furfural=data.furfural||0
@@ -79,7 +79,23 @@ export async function POST(req: NextRequest) {
     const duvalCode = duvalTriangle(ch4,c2h2,c2h4)
     const severity = severityResult.level
 
-    // 4. Salvar anÃ¡lise com severidade jÃ¡ calculada
+    // 3b. Avaliacao fisico-quimica (NBRs), se algum parametro veio no laudo
+    const hasOilParams = [data.rigidez_kv, data.agua_ppm, data.acidez_mg_koh, data.tensao_interfacial_mn_m, data.fator_potencia_pct, data.cor_astm, data.densidade].some((v: any) => v != null)
+    let oilQuality: { status: string; issues: string[] } | null = null
+    if (hasOilParams) {
+      oilQuality = evalOilQuality({
+        oil_type: (oil_type || 'Mineral') as OilQualityInput['oil_type'],
+        rigidez_kv: data.rigidez_kv ?? undefined,
+        agua_ppm: data.agua_ppm ?? undefined,
+        acidez_mg_koh: data.acidez_mg_koh ?? undefined,
+        tensao_interfacial_mn_m: data.tensao_interfacial_mn_m ?? undefined,
+        fator_potencia_pct: data.fator_potencia_pct ?? undefined,
+        cor_astm: data.cor_astm ?? undefined,
+        densidade: data.densidade ?? undefined,
+      })
+    }
+
+    // 4. Salvar analise com severidade ja calculada
     const { data: analysis, error } = await supabase
       .from('lab_analyses')
       .insert({
@@ -92,6 +108,15 @@ export async function POST(req: NextRequest) {
         laboratorio: data.laboratorio,
         numero_laudo: data.numero_laudo,
         severity,
+        rigidez_kv: data.rigidez_kv,
+        agua_ppm: data.agua_ppm,
+        acidez_mg_koh: data.acidez_mg_koh,
+        tensao_interfacial_mn_m: data.tensao_interfacial_mn_m,
+        fator_potencia_pct: data.fator_potencia_pct,
+        cor_astm: data.cor_astm,
+        densidade: data.densidade,
+        oil_quality_status: oilQuality?.status ?? null,
+        oil_quality_issues: oilQuality?.issues?.join(' | ') ?? null,
       })
       .select().single()
 

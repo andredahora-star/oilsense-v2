@@ -136,7 +136,12 @@ export async function POST(req: NextRequest) {
     // Salvar resultado no banco
     const { data: updated, error: updateErr } = await supabase
       .from('lab_analyses')
-      .update({ severity: severityResult.level, diagnostic })
+      .update({
+        severity: severityResult.level,
+        diagnostic,
+        ...(oilQuality ? { oil_quality_status: oilQuality.status, oil_quality_issues: oilQuality.issues.join(' | ') } : {}),
+        ...(oil_params || {}),
+      })
       .eq('id', analysis_id)
       .select().single()
 
