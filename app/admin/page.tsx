@@ -24,6 +24,7 @@ export default function AdminPage() {
     const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/admin/stats', {
       headers: session?.access_token ? { Authorization: 'Bearer ' + session.access_token } : {},
+      cache: 'no-store',
     })
     if (res.ok) { const d = await res.json(); setSubs(d.subscriptions||[]); setStats(d.stats||{}) }
   }

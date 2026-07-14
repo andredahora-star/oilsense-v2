@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 export async function GET(req: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -38,5 +41,7 @@ export async function GET(req: NextRequest) {
     stats[s.id] = { transformers: t.count || 0, analyses: a.count || 0, alerts: al.count || 0, orders: o.count || 0 }
   }))
 
-  return NextResponse.json({ subscriptions: subsWithEmail, stats })
+  return NextResponse.json({ subscriptions: subsWithEmail, stats }, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+  })
 }
