@@ -3,9 +3,11 @@ import{useState}from 'react'
 import{createClient}from '@supabase/supabase-js'
 import{useRouter}from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 const sb=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 export default function SignupPage(){
   const[form,setForm]=useState({name:'',company:'',email:'',password:'',confirm:''})
+  const[agreed,setAgreed]=useState(false)
   const[loading,setLoading]=useState(false)
   const[error,setError]=useState('')
   const[ok,setOk]=useState(false)
@@ -15,6 +17,7 @@ export default function SignupPage(){
     if(!form.name||!form.company||!form.email||!form.password){setError('Preencha todos os campos.');return}
     if(form.password!==form.confirm){setError('As senhas nao conferem.');return}
     if(form.password.length<8){setError('Senha deve ter ao menos 8 caracteres.');return}
+    if(!agreed){setError('Voce precisa aceitar os Termos de Uso e a Politica de Privacidade para continuar.');return}
     setLoading(true)
     try{
       const{data:signUpData,error:e}=await sb.auth.signUp({email:form.email,password:form.password,options:{data:{name:form.name,company:form.company},emailRedirectTo:window.location.origin+'/dashboard'}})
@@ -58,6 +61,12 @@ export default function SignupPage(){
               <input className="input" type={f.t} value={(form as any)[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} placeholder={f.p} onKeyDown={e=>e.key==='Enter'&&go()}/>
             </div>
           ))}
+          <label style={{display:'flex',alignItems:'flex-start',gap:'8px',cursor:'pointer'}}>
+            <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{marginTop:'3px',width:'15px',height:'15px',flexShrink:0,accentColor:'var(--green)'}}/>
+            <span style={{fontSize:'12.5px',color:'var(--text-muted)',lineHeight:1.5}}>
+              Li e concordo com os <Link href="/termos" target="_blank" style={{color:'var(--green)',fontWeight:600}}>Termos de Uso</Link> e a <Link href="/privacidade" target="_blank" style={{color:'var(--green)',fontWeight:600}}>Politica de Privacidade</Link> da OilSense.
+            </span>
+          </label>
           <button className="btn btn-primary" onClick={go} disabled={loading} style={{width:'100%',marginTop:'4px',padding:'11px'}}>{loading?'Criando...':'Criar conta'}</button>
         </div>
         <p style={{fontSize:'13px',color:'var(--text-muted)',textAlign:'center',marginTop:'20px'}}>Ja tem conta?{' '}<button onClick={()=>router.push('/login')} style={{background:'none',border:'none',color:'var(--green)',cursor:'pointer',fontSize:'13px',fontWeight:'600'}}>Fazer login</button></p>
