@@ -1,12 +1,11 @@
 /**
  * DUVAL BRAIN — Motor Normativo OilSense v2
  *
- * Normas implementadas:
+ * --- Normas de INTERPRETAÇÃO com limites numéricos implementados no código ---
  * IEC 60599:2022   — Interpretacao de gases dissolvidos e livres em transformadores
  * IEEE C57.104-2019— Guia para interpretacao de gases em transformadores imersos em oleo mineral
  * IEC 61198:1993   — Métodos para determinacao de compostos furânicos
  * ASTM D5837       — Analise de compostos furânicos para avaliacao da isolacao celulósica
- * NBR 7070:2006    — Amostragem e analise de gases dissolvidos em oleo mineral isolante (cromatografia)
  * NBR 10710:2022   — Determinacao do teor de agua em oleo isolante (metodo Karl Fischer)
  * NBR 12133:1991   — Determinacao do fator de dissipacao dielétrica e permissividade relativa
  * NBR IEC 60156:2019— Determinacao da rigidez dielétrica do óleo isolante
@@ -14,6 +13,30 @@
  * NBR 6234:2015    — Determinacao da tensao interfacial do óleo isolante a 25°C
  * NBR 14483:2015   — Determinacao da cor do oleo isolante (escala ASTM)
  * NBR 7148:2013    — Determinacao da densidade relativa do oleo mineral isolante
+ *
+ * --- Normas REFERENCIADAS mas não traduzidas em limites numéricos próprios ---
+ * NBR 7070:2006    — Amostragem e analise de gases livres/dissolvidos (procedimento
+ *                     laboratorial/de campo — não é uma tabela de interpretação, por
+ *                     isso não gera limites numéricos próprios no código).
+ *
+ * --- Nota sobre a NBR 7274 (interpretação de gases — método de razões) ---
+ * A versão NBR 7274:2012 foi CANCELADA pela ABNT. A versão vigente tem escopo
+ * atualizado ("Equipamentos elétricos em serviço preenchidos com óleo mineral
+ * isolante — Recomendações para interpretação dos gases dissolvidos e análise
+ * de gás livre"), mas seu texto e tabela numérica completa não estão disponíveis
+ * publicamente para verificação (norma paga, sem republicação livre confiável).
+ * Fontes técnicas independentes indicam que a NBR 7274 foi historicamente
+ * construída como adaptação brasileira do método de razões de gases do IEC/IEEE
+ * (mesma estrutura de 3 razões: CH4/H2, C2H2/C2H4, C2H4/C2H6 — ver rogersRatio()
+ * abaixo). Ou seja, a metodologia aqui implementada é estruturalmente equivalente
+ * à adotada pela NBR 7274, mas os limiares numéricos exatos da versão vigente da
+ * norma NÃO foram confirmados byte a byte contra o texto oficial. Se for necessária
+ * conformidade numérica exata com a NBR 7274 vigente (ex: exigência contratual ou
+ * auditoria), o texto oficial da norma precisa ser fornecido para validação.
+ *
+ * O Triângulo de Duval (Duval M., IEEE Electrical Insulation Magazine, 2002) é um
+ * método gráfico universal, não redefinido por norma nacional — IEC 60599 e a
+ * literatura brasileira referenciam as mesmas zonas (PD, D1, D2, DT, T1, T2, T3).
  */
 
 // ============================================================
@@ -96,6 +119,9 @@ export function duvalTriangle(ch4: number, c2h2: number, c2h4: number): keyof ty
 // ============================================================
 // 4. MÉTODO DE ROGERS RATIO (IEEE C57.104-2019 Annex C)
 // Tres relacoes: R1=CH4/H2, R2=C2H2/C2H4, R3=C2H4/C2H6
+// Mesma estrutura de 3 razoes usada pelo metodo da NBR 7274 (adaptacao
+// brasileira do metodo IEC/IEEE) — ver nota sobre NBR 7274 no cabecalho
+// deste arquivo quanto aos limiares numericos exatos da norma vigente.
 // ============================================================
 export type RogersResult = {
   R1: number; R2: number; R3: number
@@ -253,7 +279,7 @@ export function calcSeverity(
 
   // --- Rogers Ratio ---
   const rogers = rogersRatio(ch4, h2, c2h2, c2h4, c2h6)
-  if (rogers.code !== 'N') { rules.push('Rogers Ratio: '+rogers.code+' — '+rogers.fault+' (R1='+rogers.R1+' R2='+rogers.R2+' R3='+rogers.R3+')') }
+  if (rogers.code !== 'N') { rules.push('Rogers Ratio (metodologia equivalente à NBR 7274): '+rogers.code+' — '+rogers.fault+' (R1='+rogers.R1+' R2='+rogers.R2+' R3='+rogers.R3+')') }
 
   // --- Papel (IEC 60599 + IEC 61198 + ASTM D5837) ---
   const paper = diagnosePaper(co, co2, furfural_ppm * 1000) // converter ppm -> ppb

@@ -6,9 +6,12 @@ export const DUVAL_KNOWLEDGE = `
 === CONHECIMENTO NORMATIVO — CROMATOGRAFIA GASOSA (DGA) ===
 
 NBR 7070:2006 — Amostragem e análise cromatográfica de gases dissolvidos em óleo mineral isolante.
-Define coleta em seringa de vidro (sem contato com ar), extração e quantificação por cromatografia gasosa dos gases: H2, CH4, C2H2, C2H4, C2H6, CO, CO2 (e O2/N2). É a norma-base brasileira para o laudo DGA.
+Define coleta em seringa de vidro (sem contato com ar), extração e quantificação por cromatografia gasosa dos gases: H2, CH4, C2H2, C2H4, C2H6, CO, CO2 (e O2/N2). É a norma-base brasileira para o PROCEDIMENTO de coleta/extração do laudo DGA — não define limites de interpretação (isso é papel de outra norma).
 
-IEC 60599:2022 — Interpretação da análise de gases dissolvidos (norma principal).
+NBR 7274 — Interpretação da análise de gases de transformadores em serviço (norma brasileira de interpretação, equivalente conceitual da IEC 60599 no Brasil).
+IMPORTANTE: a versão NBR 7274:2012 foi CANCELADA pela ABNT. Existe versão vigente com escopo atualizado, mas seu texto e tabela numérica completa não puderam ser verificados (norma paga, sem republicação livre confiável). Historicamente a NBR 7274 foi construída como adaptação brasileira do método de razões de gases do IEC/IEEE (mesmas 3 razões do método de Rogers: CH4/H2, C2H2/C2H4, C2H4/C2H6). Por isso, os resultados do IEC 60599 e Rogers Ratio abaixo são estruturalmente equivalentes à abordagem da NBR 7274, mas os limiares numéricos exatos da versão vigente da norma NÃO foram confirmados byte a byte. Se o usuário pedir conformidade estrita com a NBR 7274 vigente, informe essa limitação com transparência e não invente valores — sugira que ele forneça o texto oficial da norma para validação.
+
+IEC 60599:2022 — Interpretação da análise de gases dissolvidos (norma internacional principal).
 - Limites típicos 90% (óleo mineral, transformador em serviço): H2 ≤ 150 ppm; CH4 ≤ 130 ppm; C2H2 ≤ 3 ppm (QUALQUER valor > 1 ppm exige investigação — acetileno só se forma em arco/alta energia ou > 700°C); C2H4 ≤ 280 ppm; C2H6 ≤ 90 ppm; CO ≤ 600 ppm.
 - Gás-chave × falha: H2 alto isolado → descargas parciais (corona); CH4+C2H6 → falha térmica baixa (< 300°C); C2H4 alto → falha térmica alta (> 300°C, T2/T3); C2H2 → descarga elétrica de alta energia (arco, D1/D2); CO e CO2 → degradação da celulose (papel).
 - Relação CO2/CO: > 10 papel sem degradação térmica significativa; 3–10 monitorar; < 3 (com CO relevante) possível degradação acelerada do papel.
@@ -39,4 +42,5 @@ NBR 7148:2013 — Densidade relativa a 20°C (g/cm³): faixa típica 0,820–0,8
 - Água alta + rigidez baixa → contaminação por umidade → desumidificar/termovácuo; verificar vedações e sílica-gel.
 - Gases de falha (Duval D1/D2/T3) + degradação do papel (CO2/CO baixo, furânicos altos) → falha ativa envolvendo isolação sólida → prioridade máxima.
 - Sempre citar a norma aplicada em cada afirmação e distinguir "óleo" (físico-química) de "gases" (DGA/celulose).
+- Ao citar NBR 7274, sempre mencionar que é metodologicamente equivalente ao método de razões IEC/IEEE implementado, sem afirmar conformidade numérica exata com o texto vigente da norma (não verificado).
 `.trim()
