@@ -17,8 +17,15 @@ export default function SignupPage(){
     if(form.password.length<8){setError('Senha deve ter ao menos 8 caracteres.');return}
     setLoading(true)
     try{
-      const{error:e}=await sb.auth.signUp({email:form.email,password:form.password,options:{data:{name:form.name,company:form.company},emailRedirectTo:window.location.origin+'/dashboard'}})
+      const{data:signUpData,error:e}=await sb.auth.signUp({email:form.email,password:form.password,options:{data:{name:form.name,company:form.company},emailRedirectTo:window.location.origin+'/dashboard'}})
       if(e)throw new Error(e.message)
+      if(signUpData?.user?.id){
+        const subRes=await fetch('/api/signup/init-subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:signUpData.user.id,company_name:form.company})})
+        if(!subRes.ok){
+          const subErr=await subRes.json().catch(()=>({}))
+          throw new Error(subErr.error||'Conta criada, mas houve falha ao configurar sua empresa. Contate o suporte.')
+        }
+      }
       await fetch('/api/email/welcome',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:form.name,company:form.company,email:form.email})})
       setOk(true)
     }catch(e:any){setError(e.message||'Erro ao criar conta.')}
