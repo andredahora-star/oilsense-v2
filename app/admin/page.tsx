@@ -1,17 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-const ADMIN_EMAILS = ['andredahora@oilssense.com']
+import { useAuth } from '@/lib/useAuth'
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null)
+  const { user, loading: authLoading, isAdmin, supabase } = useAuth()
   const [subs, setSubs] = useState<any[]>([])
   const [stats, setStats] = useState<Record<string,any>>({})
-  const [loading, setLoading] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ company_name: '', email: '', password: '' })
   const [creating, setCreating] = useState(false)
@@ -27,14 +24,12 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.push('/login'); return }
-      if (!ADMIN_EMAILS.includes(session.user.email||'')) { router.push('/dashboard'); return }
-      setUser(session.user)
-      await loadStats()
-      setLoading(false)
-    })
-  }, [])
+    if (authLoading) return
+    if (!isAdmin) { router.push('/dashboard'); return }
+    loadStats().then(() => setLoadingStats(false))
+  }, [authLoading, isAdmin])
+
+  const loading = authLoading || loadingStats
 
   function genPassword() {
     const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$'
@@ -75,7 +70,7 @@ export default function AdminPage() {
 
   return (
     <div className="app-layout">
-      <Sidebar email={user?.email} isAdmin={true} alertCount={totals.alerts} />
+      <Sidebar email={user?.email} isAdmin={isAdmin} alertCount={totals.alerts} />
       <main className="main-content">
         <header className="page-header">
           <div>
