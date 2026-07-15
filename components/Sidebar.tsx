@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
+import InstallButton from './InstallButton'
 
 const icoBurger = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
 
@@ -116,6 +117,7 @@ export default function Sidebar({
           </div>
           <span dangerouslySetInnerHTML={{__html: icoLogout}} style={{flexShrink:0, opacity:.35}} />
         </div>
+        <InstallButton />
         <div style={{display:'flex', gap:'10px', justifyContent:'center', marginTop:'10px', fontSize:'11px'}}>
           <a href="/termos" target="_blank" rel="noopener" style={{color:'var(--text-dim)', textDecoration:'none'}}>Termos</a>
           <span style={{color:'var(--text-dim)'}}>·</span>
