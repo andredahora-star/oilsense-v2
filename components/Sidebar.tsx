@@ -20,17 +20,20 @@ const icoOS     = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><
 const icoImport = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
 const icoAdmin  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
 const icoLogout = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H2.5A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12H5M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+const icoGear   = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="2.3" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="10.5" r="1.6" stroke="currentColor" stroke-width="1.4"/><path d="M6 3.4V2M6 10V8.6M2 6H3.4M8.6 6H10M4.1 3.9L3.1 2.9M4.1 3.9L4.9 4.7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
 
 const NAV = [
   { href:'/dashboard', label:'Dashboard',          ico:icoDash },
   { href:'/assets',    label:'Ativos',             ico:icoAssets },
   { href:'/analyses',  label:'Analises',           ico:icoAnal },
+  { href:'/gearboxes', label:'Redutores',          ico:icoGear },
   { href:'/alerts',    label:'Alertas',            ico:icoAlert },
   { href:'/orders',    label:'Ordens de Servico',  ico:icoOS },
 ]
 
 const NAV2 = [
-  { href:'/import', label:'Importar Laudos', ico:icoImport },
+  { href:'/import', label:'Importar Laudos (Transformador)', ico:icoImport },
+  { href:'/lube-import', label:'Importar Laudos (Redutor)', ico:icoImport },
 ]
 
 export default function Sidebar({
