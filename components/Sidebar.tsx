@@ -24,7 +24,7 @@ const icoGear   = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><
 
 const NAV = [
   { href:'/dashboard', label:'Dashboard',          ico:icoDash },
-  { href:'/assets',    label:'Ativos',             ico:icoAssets },
+  { href:'/assets',    label:'Transformadores',    ico:icoAssets },
   { href:'/analyses',  label:'Analises',           ico:icoAnal },
   { href:'/gearboxes', label:'Redutores',          ico:icoGear },
   { href:'/alerts',    label:'Alertas',            ico:icoAlert },

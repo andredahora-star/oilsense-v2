@@ -9,9 +9,10 @@ const fmtD = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('p
 
 export default function Dashboard() {
   const { user, subId, company, loading, isAdmin, alertCount, supabase } = useAuth()
-  const [stats, setStats]   = useState({ transformers:0, analyses:0, alerts:0, orders:0 })
+  const [stats, setStats]   = useState({ assets:0, analyses:0, alerts:0, orders:0 })
   const [recent, setRecent] = useState<any[]>([])
   const [health, setHealth] = useState<any[]>([])
+  const [gbHealth, setGbHealth] = useState<any[]>([])
   const [trend, setTrend] = useState<{ values: number[]; labels: string[]; name: string } | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const router = useRouter()
@@ -20,15 +21,24 @@ export default function Dashboard() {
     if (!subId) return
     Promise.all([
       supabase.from('transformers').select('id',{count:'exact',head:true}).eq('subscription_id',subId),
+      supabase.from('gearboxes').select('id',{count:'exact',head:true}).eq('subscription_id',subId),
       supabase.from('lab_analyses').select('id',{count:'exact',head:true}).eq('subscription_id',subId),
+      supabase.from('lube_analyses').select('id',{count:'exact',head:true}).eq('subscription_id',subId),
       supabase.from('alerts').select('id',{count:'exact',head:true}).eq('subscription_id',subId).eq('resolved',false),
       supabase.from('service_orders').select('id',{count:'exact',head:true}).eq('subscription_id',subId).eq('status','aberta'),
       supabase.from('lab_analyses').select('*, transformers(identificacao)').eq('subscription_id',subId).order('created_at',{ascending:false}).limit(5),
       supabase.from('transformers').select('*').eq('subscription_id',subId).order('health_score',{ascending:true}).limit(6),
-    ]).then(([t,a,al,o,rec,hlt])=>{
-      setStats({ transformers:t.count||0, analyses:a.count||0, alerts:al.count||0, orders:o.count||0 })
+      supabase.from('gearboxes').select('*').eq('subscription_id',subId).order('health_score',{ascending:true}).limit(6),
+    ]).then(([t,g,a,la,al,o,rec,hlt,gbHlt])=>{
+      setStats({
+        assets: (t.count||0) + (g.count||0),
+        analyses: (a.count||0) + (la.count||0),
+        alerts: al.count||0,
+        orders: o.count||0,
+      })
       setRecent(rec.data||[])
       setHealth(hlt.data||[])
+      setGbHealth(gbHlt.data||[])
       setDataLoading(false)
     })
   }, [subId])
@@ -50,10 +60,10 @@ export default function Dashboard() {
   )
 
   const statCards = [
-    { label:'Transformadores', value:stats.transformers, color:'#3b82f6', bg:'rgba(59,130,246,.08)',  icon:'⬡', href:'/assets' },
-    { label:'Analises',        value:stats.analyses,     color:'#a78bfa', bg:'rgba(167,139,250,.08)', icon:'⬡', href:'/analyses' },
-    { label:'Alertas Ativos',  value:stats.alerts,       color:stats.alerts>0?'#f87171':'#10b981', bg:stats.alerts>0?'rgba(239,68,68,.08)':'rgba(30,164,101,.08)', icon:'△', href:'/alerts' },
-    { label:'OS Abertas',      value:stats.orders,       color:stats.orders>0?'#fbbf24':'#10b981', bg:stats.orders>0?'rgba(245,158,11,.08)':'rgba(30,164,101,.08)', icon:'⚙', href:'/orders' },
+    { label:'Ativos Monitorados', value:stats.assets,   color:'#3b82f6', bg:'rgba(59,130,246,.08)',  icon:'⬡', href:'/assets' },
+    { label:'Analises',           value:stats.analyses, color:'#a78bfa', bg:'rgba(167,139,250,.08)', icon:'⬡', href:'/analyses' },
+    { label:'Alertas Ativos',     value:stats.alerts,   color:stats.alerts>0?'#f87171':'#10b981', bg:stats.alerts>0?'rgba(239,68,68,.08)':'rgba(30,164,101,.08)', icon:'△', href:'/alerts' },
+    { label:'OS Abertas',         value:stats.orders,   color:stats.orders>0?'#fbbf24':'#10b981', bg:stats.orders>0?'rgba(245,158,11,.08)':'rgba(30,164,101,.08)', icon:'⚙', href:'/orders' },
   ]
 
   const scoreColor = (s:number) => s >= 85 ? '#10b981' : s >= 70 ? '#fbbf24' : '#ef4444'
@@ -102,7 +112,7 @@ export default function Dashboard() {
           <div className="two-col">
             <div className="card card-lg">
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-                <span style={{fontSize:'12px',fontWeight:'700',color:'var(--text)',textTransform:'uppercase',letterSpacing:'.08em'}}>Saude dos Ativos</span>
+                <span style={{fontSize:'12px',fontWeight:'700',color:'var(--text)',textTransform:'uppercase',letterSpacing:'.08em'}}>Saude dos Transformadores</span>
                 <button className="btn btn-secondary btn-sm" onClick={()=>router.push('/assets')}>Ver todos</button>
               </div>
               {health.length === 0 ? (
@@ -154,6 +164,40 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="card card-lg" style={{marginTop:'16px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <span style={{fontSize:'12px',fontWeight:'700',color:'var(--text)',textTransform:'uppercase',letterSpacing:'.08em'}}>Saude dos Redutores</span>
+              <button className="btn btn-secondary btn-sm" onClick={()=>router.push('/gearboxes')}>Ver todos</button>
+            </div>
+            {gbHealth.length === 0 ? (
+              <div className="empty-state" style={{padding:'28px'}}>
+                <div className="empty-title">Nenhum redutor cadastrado</div>
+                <div className="empty-text">Importe laudos de óleo lubrificante para cadastrar redutores</div>
+              </div>
+            ) : (
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))',gap:'14px'}}>
+                {gbHealth.map(g => {
+                  const score = g.health_score || 0
+                  const color = scoreColor(score)
+                  return (
+                    <div key={g.id} style={{cursor:'pointer'}} onClick={()=>router.push('/lube-analyses?gearbox='+g.id)}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'5px'}}>
+                        <span style={{fontSize:'13px',fontWeight:'500'}}>{g.identificacao||g.numero_serie}</span>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                          <span style={{fontSize:'13px',fontWeight:'700',color}}>{score}</span>
+                          <span className={'badge badge-' + (g.status||'normal')} style={{fontSize:'10px',padding:'1px 7px'}}>{g.status||'normal'}</span>
+                        </div>
+                      </div>
+                      <div className="health-bar-wrap">
+                        <div className="health-bar-fill" style={{width:score+'%', background:color}} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </main>

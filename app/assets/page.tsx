@@ -32,7 +32,7 @@ export default function Assets() {
       <main className="main-content">
         <header className="page-header">
           <div>
-            <h1 className="page-title">Ativos</h1>
+            <h1 className="page-title">Transformadores</h1>
             <p className="page-subtitle">{items.length} transformador{items.length !== 1 ? 'es' : ''} monitorado{items.length !== 1 ? 's' : ''}</p>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => router.push('/import')}>Importar Laudos</button>
