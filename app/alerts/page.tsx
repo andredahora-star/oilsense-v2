@@ -12,7 +12,7 @@ export default function Alerts() {
 
   async function load() {
     if (!subId) return
-    let q = supabase.from('alerts').select('*, transformers(identificacao,numero_serie)').eq('subscription_id', subId).order('created_at', {ascending:false})
+    let q = supabase.from('alerts').select('*, transformers(identificacao,numero_serie), gearboxes(identificacao,numero_serie)').eq('subscription_id', subId).order('created_at', {ascending:false})
     if (filter === 'open') q = q.eq('resolved', false)
     const { data } = await q
     setItems(data||[])
@@ -54,17 +54,21 @@ export default function Alerts() {
               <div className="empty-title">{filter === 'open' ? 'Nenhum alerta aberto' : 'Nenhum alerta registrado'}</div>
               <div className="empty-text">{filter === 'open' ? 'Sistema operando normalmente' : ''}</div>
             </div>
-          ) : items.map(a => (
+          ) : items.map(a => {
+            const isGearbox = !!a.gearbox_id
+            const assetName = isGearbox ? (a.gearboxes?.identificacao || a.gearboxes?.numero_serie) : (a.transformers?.identificacao || a.transformers?.numero_serie)
+            return (
             <div key={a.id} className="card" style={{marginBottom:'10px',borderColor:(severityColor[a.severity]||'var(--border)')+'44'}}>
               <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px'}}>
                 <div style={{flex:1}}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px',flexWrap:'wrap'}}>
                     <span className={"badge badge-" + (a.severity||'medium')}>{severityLabel[a.severity] || a.severity}</span>
+                    <span style={{fontSize:'10px',fontWeight:700,padding:'2px 7px',borderRadius:'4px',background:isGearbox?'rgba(217,119,6,.12)':'rgba(59,130,246,.12)',color:isGearbox?'#d97706':'#3b82f6',textTransform:'uppercase',letterSpacing:'.04em'}}>{isGearbox?'Redutor':'Transformador'}</span>
                     <span style={{fontSize:'14px',fontWeight:'600'}}>{a.title}</span>
                   </div>
                   <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'8px',lineHeight:1.5}}>{a.message}</p>
                   <div style={{fontSize:'12px',color:'var(--text-dim)',display:'flex',gap:'12px'}}>
-                    <span>{a.transformers?.identificacao || a.transformers?.numero_serie || '-'}</span>
+                    <span>{assetName || '-'}</span>
                     <span>{new Date(a.created_at).toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
@@ -73,14 +77,14 @@ export default function Alerts() {
                     <span className="badge badge-normal">Resolvido</span>
                   ) : (
                     <>
-                      <button className="btn btn-secondary btn-sm" onClick={() => router.push('/analyses')}>Ver analise</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => router.push(isGearbox ? '/lube-analyses' + (a.gearbox_id ? '?gearbox='+a.gearbox_id : '') : '/analyses' + (a.transformer_id ? '?transformer='+a.transformer_id : ''))}>Ver analise</button>
                       <button className="btn btn-sm" style={{background:'rgba(30,164,101,.1)',color:'#10b981',border:'1px solid rgba(30,164,101,.2)'}} onClick={() => resolve(a.id)}>Resolver</button>
                     </>
                   )}
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </main>
     </div>

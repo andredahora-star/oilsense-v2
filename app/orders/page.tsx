@@ -6,19 +6,21 @@ export default function Orders() {
   const { user, subId, company, loading, isAdmin, alertCount, supabase } = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [transformers, setTransformers] = useState<any[]>([])
+  const [gearboxes, setGearboxes] = useState<any[]>([])
   const [running, setRunning] = useState(false)
   const [msg, setMsg] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const [form, setForm] = useState({transformer_id:'', titulo:'', prioridade:'media'})
+  const [form, setForm] = useState({asset_type:'transformer', transformer_id:'', gearbox_id:'', titulo:'', prioridade:'media'})
   const [saving, setSaving] = useState(false)
   async function load() {
     if (!subId) return
-    const [{ data: os }, { data: tr }] = await Promise.all([
-      supabase.from('service_orders').select('*, transformers(identificacao,numero_serie,localizacao)').eq('subscription_id', subId).order('created_at', {ascending:false}),
+    const [{ data: os }, { data: tr }, { data: gb }] = await Promise.all([
+      supabase.from('service_orders').select('*, transformers(identificacao,numero_serie,localizacao), gearboxes(identificacao,numero_serie,localizacao)').eq('subscription_id', subId).order('created_at', {ascending:false}),
       supabase.from('transformers').select('id,identificacao,numero_serie').eq('subscription_id', subId),
+      supabase.from('gearboxes').select('id,identificacao,numero_serie').eq('subscription_id', subId),
     ])
-    setItems(os||[]); setTransformers(tr||[])
+    setItems(os||[]); setTransformers(tr||[]); setGearboxes(gb||[])
   }
   useEffect(() => { load() }, [subId])
   async function runMilkRun() {
@@ -32,8 +34,13 @@ export default function Orders() {
   async function createOS() {
     if (!form.titulo.trim()) return
     setSaving(true)
-    await supabase.from('service_orders').insert({subscription_id:subId,transformer_id:form.transformer_id||null,titulo:form.titulo.trim(),prioridade:form.prioridade,status:'aberta'})
-    setSaving(false); setShowModal(false); setForm({transformer_id:'',titulo:'',prioridade:'media'}); await load()
+    await supabase.from('service_orders').insert({
+      subscription_id:subId,
+      transformer_id: form.asset_type==='transformer' ? (form.transformer_id||null) : null,
+      gearbox_id: form.asset_type==='gearbox' ? (form.gearbox_id||null) : null,
+      titulo:form.titulo.trim(),prioridade:form.prioridade,status:'aberta',
+    })
+    setSaving(false); setShowModal(false); setForm({asset_type:'transformer',transformer_id:'',gearbox_id:'',titulo:'',prioridade:'media'}); await load()
   }
   if (loading) return <div className="loading-screen"><div className="spinner"/><span className="loading-text">Carregando...</span></div>
   const pc:Record<string,string>={alta:'#ef4444',media:'#fbbf24',baixa:'#6b7f72'}
@@ -62,12 +69,18 @@ export default function Orders() {
           </div>
           {items.length===0?(
             <div className="empty-state"><div className="empty-title">Nenhuma OS criada</div><div className="empty-text">Use Nova OS ou Milk Run</div></div>
-          ):items.map(o=>(
+          ):items.map(o=>{
+            const isGearbox = !!o.gearbox_id
+            const assetName = isGearbox ? (o.gearboxes?.identificacao||o.gearboxes?.numero_serie) : (o.transformers?.identificacao||o.transformers?.numero_serie)
+            return (
             <div key={o.id} className="row-item">
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:'14px',fontWeight:'600',marginBottom:'4px'}}>{o.titulo||'Sem titulo'}</div>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                  <div style={{fontSize:'14px',fontWeight:'600'}}>{o.titulo||'Sem titulo'}</div>
+                  {(o.transformer_id||o.gearbox_id) && <span style={{fontSize:'9.5px',fontWeight:700,padding:'2px 6px',borderRadius:'4px',background:isGearbox?'rgba(217,119,6,.12)':'rgba(59,130,246,.12)',color:isGearbox?'#d97706':'#3b82f6',textTransform:'uppercase',letterSpacing:'.04em'}}>{isGearbox?'Redutor':'Transformador'}</span>}
+                </div>
                 <div style={{fontSize:'12px',color:'var(--text-muted)',display:'flex',gap:'10px'}}>
-                  <span>{o.transformers?.identificacao||'Sem ativo'}</span>
+                  <span>{assetName||'Sem ativo'}</span>
                   <span>{new Date(o.created_at).toLocaleDateString('pt-BR')}</span>
                 </div>
               </div>
@@ -78,10 +91,10 @@ export default function Orders() {
                 {o.status==='em_andamento'&&<button className="btn btn-sm" style={{background:'rgba(30,164,101,.1)',color:'#10b981',border:'1px solid rgba(30,164,101,.2)'}} onClick={()=>updateStatus(o.id,'concluida')}>Concluir</button>}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </main>
-      {showModal&&(<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200}} onClick={()=>setShowModal(false)}><div className="card" style={{width:'400px',maxWidth:'90vw',padding:'24px'}} onClick={e=>e.stopPropagation()}><h2 style={{fontSize:'16px',fontWeight:'700',marginBottom:'16px'}}>Nova OS</h2><div style={{display:'flex',flexDirection:'column',gap:'12px'}}><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Titulo *</label><input className="input" value={form.titulo} onChange={e=>setForm({...form,titulo:e.target.value})} placeholder="Coleta programada..." /></div><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Ativo</label><select className="input select" value={form.transformer_id} onChange={e=>setForm({...form,transformer_id:e.target.value})}><option value="">Nenhum</option>{transformers.map(t=><option key={t.id} value={t.id}>{t.identificacao||t.numero_serie}</option>)}</select></div><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Prioridade</label><select className="input select" value={form.prioridade} onChange={e=>setForm({...form,prioridade:e.target.value})}><option value="alta">Alta</option><option value="media">Media</option><option value="baixa">Baixa</option></select></div></div><div style={{display:'flex',gap:'8px',justifyContent:'flex-end',marginTop:'16px'}}><button className="btn btn-secondary btn-sm" onClick={()=>setShowModal(false)}>Cancelar</button><button className="btn btn-primary btn-sm" onClick={createOS} disabled={saving}>{saving?'Salvando...':'Criar'}</button></div></div></div>)}
+      {showModal&&(<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200}} onClick={()=>setShowModal(false)}><div className="card" style={{width:'400px',maxWidth:'90vw',padding:'24px'}} onClick={e=>e.stopPropagation()}><h2 style={{fontSize:'16px',fontWeight:'700',marginBottom:'16px'}}>Nova OS</h2><div style={{display:'flex',flexDirection:'column',gap:'12px'}}><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Titulo *</label><input className="input" value={form.titulo} onChange={e=>setForm({...form,titulo:e.target.value})} placeholder="Coleta programada..." /></div><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tipo de ativo</label><select className="input select" value={form.asset_type} onChange={e=>setForm({...form,asset_type:e.target.value,transformer_id:'',gearbox_id:''})}><option value="transformer">Transformador</option><option value="gearbox">Redutor</option></select></div><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Ativo</label>{form.asset_type==='transformer'?(<select className="input select" value={form.transformer_id} onChange={e=>setForm({...form,transformer_id:e.target.value})}><option value="">Nenhum</option>{transformers.map(t=><option key={t.id} value={t.id}>{t.identificacao||t.numero_serie}</option>)}</select>):(<select className="input select" value={form.gearbox_id} onChange={e=>setForm({...form,gearbox_id:e.target.value})}><option value="">Nenhum</option>{gearboxes.map(g=><option key={g.id} value={g.id}>{g.identificacao||g.numero_serie}</option>)}</select>)}</div><div><label style={{fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Prioridade</label><select className="input select" value={form.prioridade} onChange={e=>setForm({...form,prioridade:e.target.value})}><option value="alta">Alta</option><option value="media">Media</option><option value="baixa">Baixa</option></select></div></div><div style={{display:'flex',gap:'8px',justifyContent:'flex-end',marginTop:'16px'}}><button className="btn btn-secondary btn-sm" onClick={()=>setShowModal(false)}>Cancelar</button><button className="btn btn-primary btn-sm" onClick={createOS} disabled={saving}>{saving?'Salvando...':'Criar'}</button></div></div></div>)}
       {showInfo&&(<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200}} onClick={()=>setShowInfo(false)}><div className="card" style={{width:'420px',maxWidth:'90vw',padding:'24px'}} onClick={e=>e.stopPropagation()}><h2 style={{fontSize:'16px',fontWeight:'700',marginBottom:'12px'}}>Milk Run</h2><p style={{fontSize:'13px',color:'var(--text-muted)',lineHeight:1.7}}>Varre analises alta/critica sem OS, agrupa por localizacao e cria uma OS por local. Roda diariamente as 6h.</p><div style={{display:'flex',justifyContent:'flex-end',marginTop:'16px'}}><button className="btn btn-primary btn-sm" onClick={()=>setShowInfo(false)}>Entendi</button></div></div></div>)}
     </div>
   )
