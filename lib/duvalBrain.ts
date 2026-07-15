@@ -132,9 +132,17 @@ export function rogersRatio(ch4:number, h2:number, c2h2:number, c2h4:number, c2h
   const R1 = h2   > 0 ? ch4  / h2   : 0
   const R2 = c2h4 > 0 ? c2h2 / c2h4 : 0
   const R3 = c2h6 > 0 ? c2h4 / c2h6 : 0
-  let fault = 'Normal — sem falha identificada'
-  let code  = 'N'
+  let fault = 'Indeterminado — fora das zonas classicas de Rogers'
+  let code  = 'IND'
   // Tabela de Rogers (IEEE C57.104 Annex C)
+  // NOTA: o metodo classico de 3 razoes de Rogers tem lacunas conhecidas —
+  // combinacoes de gases que nao se encaixam em nenhuma zona definida.
+  // Isso NAO significa "sem falha" — significa que este metodo especifico
+  // nao chegou a uma classificacao. Por isso o fallback e 'IND'
+  // (indeterminado) e nao 'N' (normal), que seria enganoso: um transformador
+  // pode estar com falha real detectada por Duval/IEC 60599 mesmo quando
+  // Rogers cai nessa lacuna (isso e um comportamento documentado do
+  // metodo, nao um bug — ver IEEE C57.104 Annex C).
   if (R1 < 0.1  && R2 < 0.1  && R3 < 0.01) { fault='PD — Descarga parcial';        code='PD' }
   else if (R1>=0.1&&R1<=1&&R2>0.1&&R2<=3&&R3<=3) { fault='D1 — Descarga baixa energia'; code='D1' }
   else if (R1>=0.1&&R1<=3&&R2>3    &&R3>=3)  { fault='D2 — Descarga alta energia (arco)';code='D2' }
@@ -279,7 +287,18 @@ export function calcSeverity(
 
   // --- Rogers Ratio ---
   const rogers = rogersRatio(ch4, h2, c2h2, c2h4, c2h6)
-  if (rogers.code !== 'N') { rules.push('Rogers Ratio (metodologia equivalente à NBR 7274): '+rogers.code+' — '+rogers.fault+' (R1='+rogers.R1+' R2='+rogers.R2+' R3='+rogers.R3+')') }
+  if (rogers.code !== 'IND') {
+    rules.push('Rogers Ratio (metodologia equivalente à NBR 7274): '+rogers.code+' — '+rogers.fault+' (R1='+rogers.R1+' R2='+rogers.R2+' R3='+rogers.R3+')')
+  } else if (score >= 50) {
+    // Divergencia real: outros metodos (Duval/IEC/IEEE) ja detectaram severidade
+    // relevante, mas Rogers nao classificou esta leitura em nenhuma zona.
+    // Isso e uma limitacao conhecida do metodo classico de Rogers (lacunas
+    // entre zonas), NAO uma contradicao do diagnostico — precisa ficar
+    // explicito para o usuario, em vez de aparecer como "Rogers: Normal".
+    rules.push('Rogers Ratio: leitura fora das zonas classicas do metodo (R1='+rogers.R1+' R2='+rogers.R2+' R3='+rogers.R3+') — nao e indicativo de normalidade, e uma lacuna conhecida do metodo de Rogers nesta faixa de razoes. Duval Triangle e os limites absolutos IEC 60599/IEEE C57.104 sao mais sensiveis aqui e sustentam o diagnostico acima.')
+  } else {
+    rules.push('Rogers Ratio: leitura fora das zonas classicas do metodo (indeterminado) — sem outros indicativos de falha nesta analise.')
+  }
 
   // --- Papel (IEC 60599 + IEC 61198 + ASTM D5837) ---
   const paper = diagnosePaper(co, co2, furfural_ppm * 1000) // converter ppm -> ppb

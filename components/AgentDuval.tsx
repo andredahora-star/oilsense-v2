@@ -25,11 +25,12 @@ export default function AgentDuval({ analysis }: { analysis: any }) {
 
   const rows: [string, string][] = [
     ['Triângulo de Duval', `${sev.duval_code} · ${duval?.desc || '—'}`],
-    ['Rogers Ratio', rogers.code === 'N' ? 'Sem falha identificada' : `${rogers.code} · ${rogers.fault}`],
+    ['Rogers Ratio', rogers.code === 'IND' ? 'Indeterminado (fora das zonas do método)' : `${rogers.code} · ${rogers.fault}`],
     ['Condição IEEE C57.104', `${sev.ieee_condition} / 4`],
     ['Papel isolante', paper.papelStatus === 'nao_avaliado' ? 'não avaliado' : paper.papelStatus],
     ['Próxima coleta', nextSampling.split(' — ')[0]],
   ]
+  const rogersDivergence = rogers.code === 'IND' && (sev.level === 'high' || sev.level === 'critical')
 
   async function gerarParecer() {
     setLoading(true)
@@ -57,6 +58,12 @@ export default function AgentDuval({ analysis }: { analysis: any }) {
       {rows.map(([k, v]) => (
         <div key={k} className="rec-row"><span className="rec-k">{k}</span><span className="rec-v">{v}</span></div>
       ))}
+
+      {rogersDivergence && (
+        <div style={{ fontSize: '11.5px', color: '#d97706', background: 'rgba(217,119,6,.08)', border: '1px solid rgba(217,119,6,.25)', borderRadius: '8px', padding: '10px 12px', margin: '10px 0', lineHeight: 1.5 }}>
+          <strong>Por que Rogers diverge do Duval:</strong> esta leitura cai numa lacuna conhecida do método clássico de Rogers (limitação documentada no IEEE C57.104 Annex C) — não é sinal de normalidade. O diagnóstico se sustenta no Triângulo de Duval e nos limites absolutos IEC 60599/IEEE C57.104, mais sensíveis nesta faixa de razões.
+        </div>
+      )}
 
       <div className="rec-action">
         <div className="lbl">Ação recomendada</div>

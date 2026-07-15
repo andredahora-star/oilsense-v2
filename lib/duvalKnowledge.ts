@@ -19,6 +19,8 @@ IEC 60599:2022 — Interpretação da análise de gases dissolvidos (norma inter
 Triângulo de Duval (IEC 60599): zonas PD (descarga parcial), D1 (descarga baixa energia), D2 (arco de alta energia), DT (misto térmico+elétrico), T1 (<300°C), T2 (300–700°C), T3 (>700°C). Usa proporções relativas de CH4, C2H2, C2H4.
 Razões de Rogers (IEEE C57.104 Anexo): R1=CH4/H2, R2=C2H2/C2H4, R3=C2H4/C2H6 — combinações classificam o tipo de falha (PD, D1, D2, T1, T2, T3).
 
+IMPORTANTE — divergência Duval x Rogers: o método clássico de Rogers tem lacunas conhecidas e documentadas (IEEE C57.104 Annex C) — combinações reais de razões de gases que não se encaixam em NENHUMA zona definida da tabela. Quando isso acontece, o sistema reporta o código "IND" (indeterminado), NUNCA "normal" — cair fora das zonas de Rogers não significa que o transformador está saudável. É comum e esperado que o Triângulo de Duval (mais sensível e contínuo) detecte uma falha real (ex: T2, sobreaquecimento) enquanto Rogers, para a mesma amostra, não classifique nada (IND). Se o usuário perguntar por que os métodos divergem, explique exatamente isso: é uma limitação conhecida do método de Rogers, não um erro do sistema, e o diagnóstico final se apoia no Triângulo de Duval e nos limites absolutos IEC 60599/IEEE C57.104, que são mais confiáveis nessas faixas de razões.
+
 IEEE C57.104-2019 — Condições 1 a 4 pelo TDCG (soma de gases combustíveis):
 - Condição 1: operação normal, coleta anual. Condição 2: acima do normal, investigar, 3–6 meses. Condição 3: alto nível, investigar imediatamente, 1–4 semanas. Condição 4: decomposição excessiva, risco de falha, retirar de serviço/operar com extremo cuidado.
 
