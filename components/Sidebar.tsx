@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
@@ -42,8 +42,14 @@ export default function Sidebar({
   const path   = usePathname()
   const initials = email ? email.slice(0,2).toUpperCase() : 'OS'
   const [open, setOpen] = useState(false)
+  const [impersonating, setImpersonating] = useState<string|null>(null)
+
+  useEffect(() => {
+    setImpersonating(sessionStorage.getItem('impersonating'))
+  }, [])
 
   async function logout() {
+    sessionStorage.removeItem('impersonating')
     await supabase.auth.signOut()
     router.push('/login')
   }
@@ -67,6 +73,14 @@ export default function Sidebar({
           {company && <span className="logo-sub">{company}</span>}
         </div>
       </div>
+
+      {impersonating && (
+        <div style={{margin:'0 12px 12px', padding:'8px 10px', background:'rgba(217,119,6,.12)', border:'1px solid rgba(217,119,6,.3)', borderRadius:'8px', fontSize:'11px', color:'#d97706', lineHeight:1.4}}>
+          <strong>Visualizando como cliente</strong><br/>
+          {impersonating} —{' '}
+          <button onClick={logout} style={{background:'none',border:'none',color:'#d97706',textDecoration:'underline',cursor:'pointer',fontSize:'11px',padding:0,fontWeight:700}}>sair e voltar ao admin</button>
+        </div>
+      )}
 
       <nav className="sidebar-nav">
         {NAV.map(item => {

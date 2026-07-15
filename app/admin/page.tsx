@@ -102,6 +102,23 @@ export default function AdminPage() {
     } finally { setBusyAction(null) }
   }
 
+  async function impersonate(s: any) {
+    setBusyAction(s.id + ':imp')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/impersonate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session?.access_token, target_user_id: s.user_id }),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.success) throw new Error(d.error || 'Erro')
+      sessionStorage.setItem('impersonating', s.company_name)
+      window.location.href = d.action_link
+    } catch (e: any) {
+      setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: e.message } }))
+      setBusyAction(null)
+    }
+  }
   async function resetPassword(s: any) {
     if (!s.email) { setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: 'Cliente sem email associado.' } })); return }
     setBusyAction(s.id + ':reset')
@@ -223,6 +240,9 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap',borderTop:'1px solid var(--border)',paddingTop:'14px'}}>
+                      <button className="btn btn-primary btn-sm" disabled={busyAction===s.id+':imp' || suspended} onClick={()=>impersonate(s)} title={suspended ? 'Reative o cliente antes de entrar como ele' : ''}>
+                        {busyAction===s.id+':imp' ? 'Entrando...' : 'Entrar como cliente →'}
+                      </button>
                       <button className="btn btn-secondary btn-sm" disabled={busyAction===s.id+':reset'} onClick={()=>resetPassword(s)}>
                         {busyAction===s.id+':reset' ? 'Enviando...' : 'Resetar senha (enviar email)'}
                       </button>
