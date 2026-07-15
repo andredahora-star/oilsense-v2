@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
     stats[s.id] = { transformers: t.count || 0, analyses: a.count || 0, alerts: al.count || 0, orders: o.count || 0 }
   }))
 
-  return NextResponse.json({ subscriptions: subsWithEmail, stats }, {
+  const { data: recentErrors } = await supabase
+    .from('error_logs').select('*').order('created_at', { ascending: false }).limit(15)
+
+  return NextResponse.json({ subscriptions: subsWithEmail, stats, recent_errors: recentErrors || [] }, {
     headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
   })
 }

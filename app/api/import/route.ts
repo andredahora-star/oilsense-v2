@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { calcSeverity, duvalTriangle, DUVAL_ZONES, evalOilQuality, type OilQualityInput } from '@/lib/duvalBrain'
+import { checkPdfSize, checkImportRateLimit } from '@/lib/importLimits'
+import { logError } from '@/lib/logError'
 
 export const runtime = 'nodejs'
 
@@ -9,6 +11,11 @@ export async function POST(req: NextRequest) {
     const { pdf_base64, oil_type, subscription_id } = await req.json()
     if (!pdf_base64) return NextResponse.json({ error: 'pdf_base64 required' }, { status: 400 })
     if (!subscription_id) return NextResponse.json({ error: 'subscription_id required' }, { status: 400 })
+
+    const sizeErr = checkPdfSize(pdf_base64)
+    if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 413 })
+    const rateErr = await checkImportRateLimit(subscription_id)
+    if (rateErr) return NextResponse.json({ error: rateErr }, { status: 429 })
 
     // 1. Chamar Claude para extrair dados do PDF
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -171,6 +178,7 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (err: any) {
+    await logError('/api/import', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

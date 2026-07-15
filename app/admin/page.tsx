@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/useAuth'
 export default function AdminPage() {
   const { user, loading: authLoading, isAdmin, supabase } = useAuth()
   const [subs, setSubs] = useState<any[]>([])
+  const [recentErrors, setRecentErrors] = useState<any[]>([])
   const [stats, setStats] = useState<Record<string,any>>({})
   const [loadingStats, setLoadingStats] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -26,7 +27,7 @@ export default function AdminPage() {
       headers: session?.access_token ? { Authorization: 'Bearer ' + session.access_token } : {},
       cache: 'no-store',
     })
-    if (res.ok) { const d = await res.json(); setSubs(d.subscriptions||[]); setStats(d.stats||{}) }
+    if (res.ok) { const d = await res.json(); setSubs(d.subscriptions||[]); setStats(d.stats||{}); setRecentErrors(d.recent_errors||[]) }
   }
 
   useEffect(() => {
@@ -260,6 +261,19 @@ export default function AdminPage() {
               </div>
             )
           })}
+
+          <div style={{marginTop:'28px',paddingTop:'20px',borderTop:'1px solid var(--border)'}}>
+            <div style={{fontSize:'12px',fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'12px'}}>Erros Recentes (últimos 15)</div>
+            {recentErrors.length === 0 ? (
+              <div style={{fontSize:'13px',color:'var(--text-muted)'}}>Nenhum erro registrado. 🎉</div>
+            ) : recentErrors.map((e: any) => (
+              <div key={e.id} style={{fontSize:'12px',padding:'8px 12px',marginBottom:'6px',borderRadius:'8px',background:'#fdecec',color:'#dc2626',display:'flex',gap:'12px',alignItems:'baseline'}}>
+                <span style={{fontWeight:700,flexShrink:0}}>{e.route}</span>
+                <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.message}</span>
+                <span style={{flexShrink:0,color:'#a35252',fontSize:'11px'}}>{new Date(e.created_at).toLocaleString('pt-BR')}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>

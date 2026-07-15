@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logError } from '@/lib/logError'
 import {
   calcSeverity, duvalTriangle, rogersRatio, diagnosePaper,
   getSamplingInterval, evalOilQuality, DUVAL_ZONES, IEEE_ACTIONS,
@@ -163,6 +164,7 @@ export async function POST(req: NextRequest) {
       diagnostic,
     })
   } catch (err: any) {
+    await logError('/api/diagnose', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
