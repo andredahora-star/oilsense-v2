@@ -53,63 +53,60 @@ export const LUBE_REFERENCE_RANGES = {
   wear_trend_pct_critico: 100,
 }
 
-export function evalLubeQuality(input: LubeQualityInput, prev?: LubeQualityInput): { status: 'bom'|'atencao'|'critico'; issues: string[] } {
+export function evalLubeQuality(input: LubeQualityInput, prev?: LubeQualityInput): { status: 'bom'|'atencao'|'critico'; score: number; issues: string[] } {
   const issues: string[] = []
-  let status: 'bom'|'atencao'|'critico' = 'bom'
+  let score = 0
   const R = LUBE_REFERENCE_RANGES
-
-  function bump(next: 'atencao'|'critico') {
-    if (next === 'critico' || status === 'bom') status = next
-  }
+  const bump = (n: number) => { score = Math.max(score, n) }
 
   // Viscosidade — desvio do grau ISO VG especificado
   if (input.viscosidade_40 != null && input.iso_vg) {
     const desvioPct = Math.abs(input.viscosidade_40 - input.iso_vg) / input.iso_vg * 100
     if (desvioPct >= R.viscosidade_desvio_pct_critico) {
-      bump('critico'); issues.push(`Viscosidade fora da faixa ISO VG (desvio ${desvioPct.toFixed(1)}%, ASTM D445) — risco de lubrificação inadequada`)
+      bump(80); issues.push(`Viscosidade fora da faixa ISO VG (desvio ${desvioPct.toFixed(1)}%, ASTM D445) — risco de lubrificação inadequada`)
     } else if (desvioPct >= R.viscosidade_desvio_pct_atencao) {
-      bump('atencao'); issues.push(`Viscosidade se afastando do grau ISO VG especificado (desvio ${desvioPct.toFixed(1)}%, ASTM D445)`)
+      bump(40); issues.push(`Viscosidade se afastando do grau ISO VG especificado (desvio ${desvioPct.toFixed(1)}%, ASTM D445)`)
     }
   }
 
   // TAN — acidez / oxidação
   if (input.tan_mg_koh != null) {
     if (input.tan_mg_koh >= R.tan_critico_mg_koh) {
-      bump('critico'); issues.push(`TAN=${input.tan_mg_koh}mgKOH/g (ASTM D664) — oxidação avançada, óleo próximo do fim de vida útil [referência de mercado]`)
+      bump(85); issues.push(`TAN=${input.tan_mg_koh}mgKOH/g (ASTM D664) — oxidação avançada, óleo próximo do fim de vida útil [referência de mercado]`)
     } else if (input.tan_mg_koh >= R.tan_atencao_mg_koh) {
-      bump('atencao'); issues.push(`TAN=${input.tan_mg_koh}mgKOH/g (ASTM D664) — oxidação iniciando, monitorar [referência de mercado]`)
+      bump(45); issues.push(`TAN=${input.tan_mg_koh}mgKOH/g (ASTM D664) — oxidação iniciando, monitorar [referência de mercado]`)
     }
   }
 
   // Água
   if (input.agua_ppm != null) {
     if (input.agua_ppm >= R.agua_ppm_critico) {
-      bump('critico'); issues.push(`Água=${input.agua_ppm}ppm (ASTM D6304) — risco de corrosão e falha de aditivos [referência de mercado]`)
+      bump(80); issues.push(`Água=${input.agua_ppm}ppm (ASTM D6304) — risco de corrosão e falha de aditivos [referência de mercado]`)
     } else if (input.agua_ppm >= R.agua_ppm_atencao) {
-      bump('atencao'); issues.push(`Água=${input.agua_ppm}ppm (ASTM D6304) — acima do ideal, investigar fonte de contaminação [referência de mercado]`)
+      bump(40); issues.push(`Água=${input.agua_ppm}ppm (ASTM D6304) — acima do ideal, investigar fonte de contaminação [referência de mercado]`)
     }
   }
 
   // ISO 4406 — limpeza vs meta
   if (input.iso_4406_grande != null && input.iso_4406_target != null) {
     const diff = input.iso_4406_grande - input.iso_4406_target
-    if (diff >= 4) { bump('critico'); issues.push(`ISO 4406: código de limpeza ${diff} pontos acima da meta — contaminação sólida significativa`) }
-    else if (diff >= 2) { bump('atencao'); issues.push(`ISO 4406: código de limpeza ${diff} pontos acima da meta — monitorar filtragem`) }
+    if (diff >= 4) { bump(78); issues.push(`ISO 4406: código de limpeza ${diff} pontos acima da meta — contaminação sólida significativa`) }
+    else if (diff >= 2) { bump(35); issues.push(`ISO 4406: código de limpeza ${diff} pontos acima da meta — monitorar filtragem`) }
   }
 
   // Metais de desgaste — TENDENCIA, nao valor absoluto
   if (prev) {
-    const wearChecks: [string, keyof LubeQualityInput, string][] = [
-      ['fe_ppm', 'fe_ppm', 'Ferro'], ['cu_ppm', 'cu_ppm', 'Cobre'], ['cr_ppm', 'cr_ppm', 'Cromo'],
-    ] as any
-    for (const [key, , label] of wearChecks) {
+    const wearChecks: [keyof LubeQualityInput, string][] = [
+      ['fe_ppm', 'Ferro'], ['cu_ppm', 'Cobre'], ['cr_ppm', 'Cromo'],
+    ]
+    for (const [key, label] of wearChecks) {
       const cur = (input as any)[key], prv = (prev as any)[key]
       if (cur != null && prv != null && prv > 0) {
         const varPct = (cur - prv) / prv * 100
         if (varPct >= R.wear_trend_pct_critico) {
-          bump('critico'); issues.push(`${label}: subiu ${varPct.toFixed(0)}% desde a última análise (${prv}→${cur}ppm, ASTM D5185) — taxa de desgaste elevada`)
+          bump(85); issues.push(`${label}: subiu ${varPct.toFixed(0)}% desde a última análise (${prv}→${cur}ppm, ASTM D5185) — taxa de desgaste elevada`)
         } else if (varPct >= R.wear_trend_pct_atencao) {
-          bump('atencao'); issues.push(`${label}: subiu ${varPct.toFixed(0)}% desde a última análise (${prv}→${cur}ppm, ASTM D5185) — monitorar tendência`)
+          bump(45); issues.push(`${label}: subiu ${varPct.toFixed(0)}% desde a última análise (${prv}→${cur}ppm, ASTM D5185) — monitorar tendência`)
         }
       }
     }
@@ -117,9 +114,10 @@ export function evalLubeQuality(input: LubeQualityInput, prev?: LubeQualityInput
 
   // Silicio — contaminacao externa (poeira/areia), sempre relevante mesmo sem historico
   if (input.si_ppm != null && input.si_ppm > 20) {
-    bump(input.si_ppm > 40 ? 'critico' : 'atencao')
+    bump(input.si_ppm > 40 ? 80 : 40)
     issues.push(`Silício=${input.si_ppm}ppm (ASTM D5185) — indício de contaminação externa por poeira/areia, verificar vedações e respiro`)
   }
 
-  return { status, issues }
+  const status: 'bom'|'atencao'|'critico' = score >= 75 ? 'critico' : score >= 30 ? 'atencao' : 'bom'
+  return { status, score, issues }
 }

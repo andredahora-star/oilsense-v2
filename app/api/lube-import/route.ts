@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
         data_coleta: data.data_coleta, laboratorio: data.laboratorio, numero_laudo: data.numero_laudo,
         severity,
         lube_quality_status: lubeQuality.status,
+        lube_quality_score: lubeQuality.score,
         lube_quality_issues: lubeQuality.issues.join(' | '),
       })
       .select().single()
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
         .select().single()
       alerta = novoAlerta
 
-      const healthScore = lubeQuality.status === 'critico' ? 25 : lubeQuality.status === 'atencao' ? 55 : 100
+      const healthScore = Math.max(10, 100 - lubeQuality.score)
       await supabase.from('gearboxes').update({
         health_score: healthScore,
         status: lubeQuality.status === 'critico' ? 'critico' : lubeQuality.status === 'atencao' ? 'atencao' : 'normal',

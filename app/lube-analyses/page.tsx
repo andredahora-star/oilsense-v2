@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import Sidebar from '@/components/Sidebar'
+import AgentLube from '@/components/AgentLube'
 
 const LUBE_FIELDS: { key: string; label: string; unit: string; norm: string }[] = [
   { key: 'viscosidade_40', label: 'Viscosidade 40°C', unit: 'cSt', norm: 'ASTM D445' },
@@ -30,7 +31,7 @@ function List() {
 
   useEffect(() => {
     if (!subId) return
-    let q = supabase.from('lube_analyses').select('*, gearboxes(identificacao,numero_serie,localizacao)').eq('subscription_id', subId).order('data_coleta', { ascending: false })
+    let q = supabase.from('lube_analyses').select('*, gearboxes(identificacao,numero_serie,localizacao,iso_vg)').eq('subscription_id', subId).order('data_coleta', { ascending: false })
     if (gid) q = q.eq('gearbox_id', gid)
     q.then(({ data }: any) => setItems(data || []))
   }, [subId, gid])
@@ -51,6 +52,11 @@ function List() {
           <button className="btn btn-secondary btn-sm" onClick={() => router.push('/gearboxes')}>← Redutores</button>
         </header>
         <div className="page-body">
+          {gid && items[0] && (
+            <div style={{ marginBottom: '16px' }}>
+              <AgentLube analysis={items[0]} prevAnalysis={items[1]} isoVg={items[0]?.gearboxes?.iso_vg} />
+            </div>
+          )}
           {items.length === 0 ? (
             <div className="empty-state"><div className="empty-title">Nenhuma análise ainda</div><div className="empty-text">Importe um laudo de óleo lubrificante para começar</div></div>
           ) : items.map((a: any) => {
