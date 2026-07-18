@@ -106,13 +106,14 @@ export default function AdminPage() {
     } finally { setBusyAction(null) }
   }
 
-  async function impersonate(s: any) {
-    setBusyAction(s.id + ':imp')
+  async function impersonate(s: any, targetUserId?: string, key?: string) {
+    const actionKey = key || (s.id + ':imp')
+    setBusyAction(actionKey)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/admin/impersonate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: session?.access_token, target_user_id: s.user_id }),
+        body: JSON.stringify({ access_token: session?.access_token, target_user_id: targetUserId || s.user_id }),
       })
       const d = await res.json()
       if (!res.ok || !d.success) throw new Error(d.error || 'Erro')
@@ -139,6 +140,23 @@ export default function AdminPage() {
     } catch (e: any) {
       setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: e.message } }))
     } finally { setAddingMember(false) }
+  }
+
+  async function removeMember(s: any, memberId: string) {
+    setBusyAction(memberId + ':remove')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/remove-member', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session?.access_token, member_id: memberId }),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.success) throw new Error(d.error || 'Erro')
+      setActionMsg(m => ({ ...m, [s.id]: { ok: true, text: 'Membro removido.' } }))
+      await loadStats()
+    } catch (e: any) {
+      setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: e.message } }))
+    } finally { setBusyAction(null) }
   }
 
   async function resetPassword(s: any) {
@@ -262,9 +280,11 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap',borderTop:'1px solid var(--border)',paddingTop:'14px'}}>
-                      <button className="btn btn-primary btn-sm" disabled={busyAction===s.id+':imp' || suspended} onClick={()=>impersonate(s)} title={suspended ? 'Reative o cliente antes de entrar como ele' : ''}>
-                        {busyAction===s.id+':imp' ? 'Entrando...' : 'Entrar como cliente →'}
-                      </button>
+                      {(!s.members || s.members.length === 0) && (
+                        <button className="btn btn-primary btn-sm" disabled={busyAction===s.id+':imp' || suspended} onClick={()=>impersonate(s)} title={suspended ? 'Reative o cliente antes de entrar como ele' : ''}>
+                          {busyAction===s.id+':imp' ? 'Entrando...' : 'Entrar como cliente →'}
+                        </button>
+                      )}
                       <button className="btn btn-secondary btn-sm" disabled={busyAction===s.id+':reset'} onClick={()=>resetPassword(s)}>
                         {busyAction===s.id+':reset' ? 'Enviando...' : 'Resetar senha (enviar email)'}
                       </button>
@@ -277,15 +297,29 @@ export default function AdminPage() {
                       <div style={{fontSize:'12px',fontWeight:'600',color:'var(--text-muted)',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'.06em'}}>
                         Membros da empresa ({(s.members||[]).length}) — todos com o mesmo nível de acesso
                       </div>
+                      {(s.members||[]).length === 0 && (
+                        <div style={{fontSize:'11.5px',color:'var(--text-dim)',marginBottom:'10px'}}>Migração de multiusuário ainda não rodou — usando login único por enquanto.</div>
+                      )}
                       {(s.members||[]).length > 0 && (
-                        <div style={{display:'flex',flexDirection:'column',gap:'4px',marginBottom:'10px'}}>
-                          {s.members.map((m: any) => (
-                            <div key={m.id} style={{fontSize:'12.5px',color:'var(--text)',display:'flex',gap:'8px',alignItems:'center'}}>
-                              <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'var(--green)',flexShrink:0}} />
-                              {m.email || m.user_id}
-                              {m.user_id === s.user_id && <span style={{fontSize:'10px',color:'var(--text-dim)'}}>(contato original)</span>}
-                            </div>
-                          ))}
+                        <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px'}}>
+                          {s.members.map((m: any) => {
+                            const isLastMember = s.members.length === 1
+                            return (
+                              <div key={m.id} style={{fontSize:'12.5px',color:'var(--text)',display:'flex',gap:'8px',alignItems:'center'}}>
+                                <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'var(--green)',flexShrink:0}} />
+                                <span style={{flex:1}}>
+                                  {m.email || m.user_id}
+                                  {m.user_id === s.user_id && <span style={{fontSize:'10px',color:'var(--text-dim)',marginLeft:'6px'}}>(contato original)</span>}
+                                </span>
+                                <button className="btn btn-secondary btn-sm" style={{padding:'3px 9px',fontSize:'11px'}} disabled={busyAction===m.id+':imp2' || suspended} onClick={()=>impersonate(s, m.user_id, m.id+':imp2')}>
+                                  {busyAction===m.id+':imp2' ? 'Entrando...' : 'Entrar →'}
+                                </button>
+                                <button className="btn btn-sm" style={{padding:'3px 9px',fontSize:'11px',background:'rgba(220,38,38,.08)',color:'#dc2626',border:'1px solid rgba(220,38,38,.2)'}} disabled={busyAction===m.id+':remove' || isLastMember} title={isLastMember ? 'Não é possível remover o último membro' : 'Remover acesso'} onClick={()=>removeMember(s, m.id)}>
+                                  {busyAction===m.id+':remove' ? '...' : 'Remover'}
+                                </button>
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
