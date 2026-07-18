@@ -1,7 +1,7 @@
 {
   "name": "OilSense — Monitoramento Preditivo de Transformadores",
   "short_name": "OilSense",
-  "description": "Diagnóstico preditivo de transformadores de potência via análise de óleo e IA normativa (IEC, IEEE, ASTM, NBR).",
+  "description": "Diagnóstico preditivo de transformadores e redutores via análise de óleo e IA normativa (IEC, IEEE, ASTM, ISO, NBR).",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",

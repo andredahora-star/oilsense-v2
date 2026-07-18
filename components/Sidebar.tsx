@@ -135,6 +135,10 @@ export default function Sidebar({
           <span dangerouslySetInnerHTML={{__html: icoLogout}} style={{flexShrink:0, opacity:.35}} />
         </div>
         <InstallButton />
+        <a href="mailto:comercial@oilssense.com?subject=Suporte%20OilSense" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',fontSize:'11.5px',fontWeight:600,color:'var(--text-muted)',textDecoration:'none',marginTop:'10px',padding:'7px',borderRadius:'8px',border:'1px solid var(--border)'}}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 5.2v3.1M8 10.8h.01" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+          Precisa de ajuda? Fale conosco
+        </a>
         <div style={{display:'flex', gap:'10px', justifyContent:'center', marginTop:'10px', fontSize:'11px'}}>
           <a href="/termos" target="_blank" rel="noopener" style={{color:'var(--text-dim)', textDecoration:'none'}}>Termos</a>
           <span style={{color:'var(--text-dim)'}}>·</span>

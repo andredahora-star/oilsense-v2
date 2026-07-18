@@ -52,7 +52,7 @@ export default function SignupPage(){
           <span style={{fontSize:'20px',fontWeight:'700',color:'var(--text)'}}>OilSense</span>
         </div>
         <h1 style={{fontSize:'22px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}}>Criar conta</h1>
-        <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'24px'}}>Monitoramento preditivo de transformadores</p>
+        <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'24px'}}>Monitoramento preditivo de transformadores e redutores</p>
         {error&&<div style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.2)',borderRadius:'8px',padding:'10px 14px',marginBottom:'16px',fontSize:'13px',color:'#f87171'}}>{error}</div>}
         <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
           {[{l:'Nome completo *',k:'name',t:'text',p:'Andre da Hora'},{l:'Empresa *',k:'company',t:'text',p:'IBITU Energia'},{l:'Email *',k:'email',t:'email',p:'voce@empresa.com.br'},{l:'Senha *',k:'password',t:'password',p:'Minimo 8 caracteres'},{l:'Confirmar senha *',k:'confirm',t:'password',p:'Repita a senha'}].map(f=>(

@@ -40,7 +40,7 @@ export default function LoginPage(){
         </div>
         {mode==='login'?(<>
           <h1 style={{fontSize:'22px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}}>Entrar</h1>
-          <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'24px'}}>Monitoramento preditivo de transformadores</p>
+          <p style={{fontSize:'13px',color:'var(--text-muted)',marginBottom:'24px'}}>Monitoramento preditivo de transformadores e redutores</p>
           {error&&<div style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.2)',borderRadius:'8px',padding:'10px 14px',marginBottom:'16px',fontSize:'13px',color:'#f87171'}}>{error}</div>}
           <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
             <div><label style={{fontSize:'12px',fontWeight:'600',color:'var(--text-muted)',display:'block',marginBottom:'6px'}}>Email</label><input className="input" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@empresa.com.br"/></div>
@@ -58,6 +58,8 @@ export default function LoginPage(){
             <a href="/termos" target="_blank" rel="noopener" style={{color:'var(--text-dim)',textDecoration:'none'}}>Termos</a>
             <span style={{color:'var(--text-dim)'}}>·</span>
             <a href="/privacidade" target="_blank" rel="noopener" style={{color:'var(--text-dim)',textDecoration:'none'}}>Privacidade</a>
+            <span style={{color:'var(--text-dim)'}}>·</span>
+            <a href="mailto:comercial@oilssense.com" style={{color:'var(--text-dim)',textDecoration:'none'}}>Suporte</a>
           </div>
         </>):(<>
           <h1 style={{fontSize:'22px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}}>Recuperar senha</h1>
