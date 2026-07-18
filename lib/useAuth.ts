@@ -21,13 +21,17 @@ export function useAuth() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
       setUser(session.user)
-      // IMPORTANTE: nao usar .single() aqui — com RLS de admin habilitada,
-      // a query pode retornar mais de uma linha (todas as subscriptions visiveis),
-      // e .single() lanca erro silencioso deixando subId travado em null.
+      // IMPORTANTE: nao filtrar por .eq('user_id', ...) aqui — com o modelo
+      // multiusuario, subscriptions.user_id so guarda o criador original da
+      // conta, nao quem pode acessar. O RLS de subscriptions ja resolve isso
+      // via subscription_members (qualquer membro da empresa passa), entao
+      // basta deixar o RLS filtrar sozinho.
+      // Tambem nao usar .single() aqui — com RLS de admin habilitada, a query
+      // pode retornar mais de uma linha, e .single() lanca erro silencioso
+      // deixando subId travado em null.
       const { data: subs } = await supabase
         .from('subscriptions')
         .select('id, company_name, is_admin')
-        .eq('user_id', session.user.id)
         .limit(1)
       const sub = subs && subs.length > 0 ? subs[0] : null
       if (sub) {

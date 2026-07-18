@@ -44,6 +44,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'falha ao criar subscription: ' + sErr.message }, { status: 400 })
     }
 
+    // 4. Cria o registro de membro — sem isso, o RLS (baseado em
+    //    subscription_members) bloquearia o proprio criador da conta.
+    await service.from('subscription_members').insert({
+      subscription_id: sub.id, user_id, email: authUser.user.email,
+    })
+
     return NextResponse.json({ success: true, subscription_id: sub.id })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

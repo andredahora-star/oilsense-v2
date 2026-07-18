@@ -24,10 +24,14 @@ export async function GET(req: NextRequest) {
 
   if (!subscriptions) return NextResponse.json({ subscriptions: [], stats: {} })
 
-  // Anexa o email de cada cliente (fica em auth.users, não em subscriptions).
+  // Anexa o email de cada cliente (fica em auth.users, não em subscriptions)
+  // e a lista de membros (com o mesmo nivel de acesso) da empresa.
   const subsWithEmail = await Promise.all(subscriptions.map(async (s: any) => {
-    const { data } = await supabase.auth.admin.getUserById(s.user_id)
-    return { ...s, email: data?.user?.email || null }
+    const [{ data }, { data: members }] = await Promise.all([
+      supabase.auth.admin.getUserById(s.user_id),
+      supabase.from('subscription_members').select('id, user_id, email, created_at').eq('subscription_id', s.id).order('created_at', { ascending: true }),
+    ])
+    return { ...s, email: data?.user?.email || null, members: members || [] }
   }))
 
   const stats: Record<string, any> = {}

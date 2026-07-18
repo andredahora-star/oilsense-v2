@@ -19,6 +19,8 @@ export default function AdminPage() {
   const [savingEdit, setSavingEdit] = useState(false)
   const [actionMsg, setActionMsg] = useState<Record<string, { ok: boolean; text: string }>>({})
   const [busyAction, setBusyAction] = useState<string|null>(null)
+  const [memberForm, setMemberForm] = useState({ email: '', password: '' })
+  const [addingMember, setAddingMember] = useState(false)
   const router = useRouter()
 
   async function loadStats() {
@@ -67,6 +69,7 @@ export default function AdminPage() {
     setExpandedId(s.id)
     setEditForm({ company_name: s.company_name || '', plan: s.plan || '' })
     setActionMsg(m => ({ ...m, [s.id]: undefined as any }))
+    setMemberForm({ email: '', password: '' })
   }
 
   async function callUpdateClient(body: Record<string, any>) {
@@ -120,6 +123,24 @@ export default function AdminPage() {
       setBusyAction(null)
     }
   }
+  async function addMember(s: any) {
+    setAddingMember(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/add-member', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session?.access_token, subscription_id: s.id, ...memberForm }),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.success) throw new Error(d.error || 'Erro')
+      setActionMsg(m => ({ ...m, [s.id]: { ok: true, text: `Membro adicionado: ${memberForm.email} — mesma senha que ele deve usar para entrar. Anote, não será exibida de novo.` } }))
+      setMemberForm({ email: '', password: '' })
+      await loadStats()
+    } catch (e: any) {
+      setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: e.message } }))
+    } finally { setAddingMember(false) }
+  }
+
   async function resetPassword(s: any) {
     if (!s.email) { setActionMsg(m => ({ ...m, [s.id]: { ok: false, text: 'Cliente sem email associado.' } })); return }
     setBusyAction(s.id + ':reset')
@@ -251,6 +272,31 @@ export default function AdminPage() {
                         {busyAction===s.id+':status' ? 'Aguarde...' : (suspended ? 'Reativar cliente' : 'Suspender cliente')}
                       </button>
                     </div>
+
+                    <div style={{borderTop:'1px solid var(--border)',paddingTop:'14px'}}>
+                      <div style={{fontSize:'12px',fontWeight:'600',color:'var(--text-muted)',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'.06em'}}>
+                        Membros da empresa ({(s.members||[]).length}) — todos com o mesmo nível de acesso
+                      </div>
+                      {(s.members||[]).length > 0 && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'4px',marginBottom:'10px'}}>
+                          {s.members.map((m: any) => (
+                            <div key={m.id} style={{fontSize:'12.5px',color:'var(--text)',display:'flex',gap:'8px',alignItems:'center'}}>
+                              <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'var(--green)',flexShrink:0}} />
+                              {m.email || m.user_id}
+                              {m.user_id === s.user_id && <span style={{fontSize:'10px',color:'var(--text-dim)'}}>(contato original)</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                        <input className="input" style={{maxWidth:'220px'}} type="email" placeholder="E-mail do novo membro" value={memberForm.email} onChange={e=>setMemberForm(f=>({...f,email:e.target.value}))} />
+                        <input className="input" style={{maxWidth:'180px'}} placeholder="Senha (mín. 8 caracteres)" value={memberForm.password} onChange={e=>setMemberForm(f=>({...f,password:e.target.value}))} />
+                        <button className="btn btn-secondary btn-sm" disabled={addingMember || !memberForm.email || memberForm.password.length<8} onClick={()=>addMember(s)}>
+                          {addingMember ? 'Adicionando...' : '+ Adicionar membro'}
+                        </button>
+                      </div>
+                    </div>
+
                     {rowMsg && (
                       <div style={{fontSize:'12px',padding:'10px 12px',borderRadius:'8px',background:rowMsg.ok?'#e6f7ef':'#fdecec',color:rowMsg.ok?'#059669':'#dc2626'}}>
                         {rowMsg.ok ? '✓ ' : '✗ '}{rowMsg.text}
